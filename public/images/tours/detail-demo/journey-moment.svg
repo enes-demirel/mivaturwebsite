@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Yolculuk anı</title><desc id="desc">Göl kıyısındaki tepeler ve uzaklara uzanan bir iskele.</desc>
+  <defs><linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f8f4f6"/><stop offset="1" stop-color="#c9c3c7"/></linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#water)"/><circle cx="890" cy="175" r="80" fill="#ff0048" opacity=".09"/>
+  <path d="M0 468 183 315l154 118 190-187 210 192 174-133 289 201v294H0Z" fill="#bab4b8" opacity=".8"/><path d="M0 555c248-32 430-7 615 64 174 66 369 69 585 17v164H0Z" fill="#e9e5e7"/>
+  <path d="m365 800 221-231 62 1-140 230Z" fill="#fff" opacity=".92"/><path d="m382 785 190-199" stroke="#ff0048" stroke-width="3" stroke-dasharray="8 15" opacity=".5"/>
+</svg>

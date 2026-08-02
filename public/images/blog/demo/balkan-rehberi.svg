@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">Balkan rotası illüstrasyonu</title>
+  <desc id="desc">Dağların arasındaki tarihi yapılar ve kıvrımlı bir seyahat yolu.</desc>
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff9fb"/><stop offset="1" stop-color="#e9e5e7"/></linearGradient></defs>
+  <rect width="1200" height="750" fill="url(#sky)"/>
+  <circle cx="920" cy="150" r="74" fill="#ff0048" opacity=".09"/>
+  <path d="M0 475 195 265l155 145 176-225 211 267 146-151 317 285v164H0Z" fill="#d5d0d3"/>
+  <path d="M0 568 222 397l174 137 182-123 193 137 198-141 231 175v168H0Z" fill="#b9b3b7"/>
+  <path d="M567 750c-18-96 19-167 112-214 72-36 117-79 135-128" fill="none" stroke="#fff" stroke-width="48" stroke-linecap="round"/>
+  <path d="M567 750c-18-96 19-167 112-214 72-36 117-79 135-128" fill="none" stroke="#ff0048" stroke-width="3" stroke-dasharray="8 15" opacity=".55"/>
+</svg>

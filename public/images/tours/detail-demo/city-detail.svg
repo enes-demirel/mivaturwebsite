@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Tarihi şehir manzarası</title><desc id="desc">Kemerler, kuleler ve meydandan oluşan sade şehir görünümü.</desc>
+  <rect width="1200" height="800" fill="#faf7f8"/><circle cx="270" cy="170" r="86" fill="#ff0048" opacity=".1"/>
+  <path d="M0 640h1200v160H0Z" fill="#d0cace"/><path d="M150 380h270v260H150ZM780 330h250v310H780Z" fill="#bbb5b9"/><path d="M520 255h170v385H520Z" fill="#a9a3a7"/>
+  <path d="M560 640V485a45 45 0 0 1 90 0v155M210 640V505a75 75 0 0 1 150 0v135M840 640V475a65 65 0 0 1 130 0v165" fill="#faf7f8"/>
+  <path d="M605 255v-95M570 197h70" stroke="#514b50" stroke-width="12" stroke-linecap="round" opacity=".75"/>
+</svg>

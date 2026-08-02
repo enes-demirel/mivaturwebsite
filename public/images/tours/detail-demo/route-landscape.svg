@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Seyahat rotası manzarası</title><desc id="desc">Dağlar arasından geçen kıvrımlı bir rota.</desc>
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff9fb"/><stop offset="1" stop-color="#e8e4e7"/></linearGradient></defs>
+  <rect width="1200" height="800" fill="url(#sky)"/><circle cx="940" cy="160" r="82" fill="#ff0048" opacity=".09"/>
+  <path d="M0 525 205 294l148 133 181-228 220 279 142-151 304 278v195H0Z" fill="#d3ced1"/><path d="M0 620 246 431l171 151 191-139 196 144 204-142 192 146v209H0Z" fill="#b8b2b6"/>
+  <path d="M550 800c-18-112 30-194 142-246 76-35 121-86 136-152" fill="none" stroke="#fff" stroke-width="54" stroke-linecap="round"/><path d="M550 800c-18-112 30-194 142-246 76-35 121-86 136-152" fill="none" stroke="#ff0048" stroke-width="3" stroke-dasharray="9 16" opacity=".5"/>
+</svg>

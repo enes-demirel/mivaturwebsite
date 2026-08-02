@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" role="img" aria-labelledby="title desc">
+  <title id="title">Mısır rotası illüstrasyonu</title>
+  <desc id="desc">Çöl tepeleri, piramitler ve gün ışığından oluşan sade manzara.</desc>
+  <defs><linearGradient id="sand" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff9f6"/><stop offset="1" stop-color="#e9ddd5"/></linearGradient></defs>
+  <rect width="1200" height="750" fill="url(#sand)"/>
+  <circle cx="922" cy="166" r="84" fill="#ff0048" opacity=".1"/>
+  <path d="m190 567 244-321 250 321Z" fill="#c9bbb3"/>
+  <path d="m492 581 180-243 186 243Z" fill="#b7aaa3"/>
+  <path d="m752 592 127-172 130 172Z" fill="#d5c8c0"/>
+  <path d="M0 576c195-42 365-25 511 29 194 72 413 67 689-11v156H0Z" fill="#e1d3ca"/>
+  <path d="M143 698c139-82 282-94 430-34 151 61 291 42 421-57" fill="none" stroke="#ff0048" stroke-width="3" stroke-dasharray="9 16" opacity=".5"/>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Seyahat rotası illüstrasyonu</title>
+  <desc id="description">Yumuşak tonlarda dağlar, tepeler ve kıvrılarak ilerleyen bir yol.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff9fb"/>
+      <stop offset="1" stop-color="#f3f0f2"/>
+    </linearGradient>
+    <linearGradient id="land" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9d4d7"/>
+      <stop offset="1" stop-color="#bdb7bb"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <circle cx="940" cy="168" r="78" fill="#ff0048" opacity=".09"/>
+  <path d="M0 500 170 330l135 119 166-214 203 246 121-135 220 233 185-166v387H0Z" fill="#e9e5e7"/>
+  <path d="m0 582 222-169 139 125 184-173 141 133 169-116 345 265v153H0Z" fill="url(#land)" opacity=".78"/>
+  <path d="M581 800c-34-108-15-194 57-258 62-55 113-89 151-104" fill="none" stroke="#fff" stroke-width="58" stroke-linecap="round"/>
+  <path d="M581 800c-34-108-15-194 57-258 62-55 113-89 151-104" fill="none" stroke="#ff0048" stroke-width="3" stroke-linecap="round" stroke-dasharray="9 16" opacity=".55"/>
+  <circle cx="789" cy="438" r="12" fill="#fff" stroke="#ff0048" stroke-width="4"/>
+</svg>
