@@ -1,10 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { logoutAction } from "@/app/admin/(protected)/actions";
 import { Logo } from "@/components/layout/logo";
 import { adminNavigationItems } from "@/data/admin-navigation";
+import { cn } from "@/lib/cn";
+import { isAdminNavigationActive } from "@/lib/admin-navigation";
 
 export function AdminSidebar({ email }: { email: string | null }) {
+  const pathname = usePathname();
+
   return (
     <aside className="hidden min-h-dvh border-r border-border bg-surface lg:flex lg:flex-col">
       <div className="border-b border-border px-6 py-5">
@@ -15,7 +22,20 @@ export function AdminSidebar({ email }: { email: string | null }) {
           {adminNavigationItems.map((item) => (
             <li key={item.label}>
               {item.href ? (
-                <Link href={item.href} className="flex min-h-11 items-center rounded-md bg-brand/5 px-3 text-sm font-bold text-brand">
+                <Link
+                  href={item.href}
+                  aria-current={
+                    isAdminNavigationActive(pathname, item.href)
+                      ? "page"
+                      : undefined
+                  }
+                  className={cn(
+                    "flex min-h-11 items-center rounded-md px-3 text-sm transition-colors",
+                    isAdminNavigationActive(pathname, item.href)
+                      ? "bg-brand/5 font-bold text-brand"
+                      : "font-semibold text-text hover:bg-background hover:text-brand",
+                  )}
+                >
                   {item.label}
                 </Link>
               ) : (

@@ -1,16 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { logoutAction } from "@/app/admin/(protected)/actions";
 import { Logo } from "@/components/layout/logo";
 import { adminNavigationItems } from "@/data/admin-navigation";
+import { cn } from "@/lib/cn";
+import { isAdminNavigationActive } from "@/lib/admin-navigation";
 
 const focusableSelector =
   'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function AdminMobileMenu({ email }: { email: string | null }) {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -75,7 +79,7 @@ export function AdminMobileMenu({ email }: { email: string | null }) {
             </div>
             <nav className="mt-5 flex-1" aria-label="Mobil admin navigasyonu">
               <ul className="space-y-1">
-                {adminNavigationItems.map((item) => <li key={item.label}>{item.href ? <Link href={item.href} onClick={() => closeMenu(false)} className="block min-h-11 rounded-md bg-brand/5 px-3 py-3 text-sm font-bold text-brand">{item.label}</Link> : <div className="flex min-h-11 items-center justify-between gap-3 px-3 py-3 text-sm font-semibold text-muted" aria-disabled="true"><span>{item.label}</span><span className="text-[0.625rem] font-bold uppercase">Yakında</span></div>}</li>)}
+                {adminNavigationItems.map((item) => <li key={item.label}>{item.href ? <Link href={item.href} aria-current={isAdminNavigationActive(pathname, item.href) ? "page" : undefined} onClick={() => closeMenu(false)} className={cn("block min-h-11 rounded-md px-3 py-3 text-sm transition-colors", isAdminNavigationActive(pathname, item.href) ? "bg-brand/5 font-bold text-brand" : "font-semibold text-text hover:bg-background hover:text-brand")}>{item.label}</Link> : <div className="flex min-h-11 items-center justify-between gap-3 px-3 py-3 text-sm font-semibold text-muted" aria-disabled="true"><span>{item.label}</span><span className="text-[0.625rem] font-bold uppercase">Yakında</span></div>}</li>)}
               </ul>
             </nav>
             <div className="border-t border-border pt-4">
