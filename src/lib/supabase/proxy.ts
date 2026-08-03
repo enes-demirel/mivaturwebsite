@@ -5,6 +5,7 @@ import {
   getSupabaseConfig,
   hasSupabaseConfig,
 } from "@/lib/supabase/config";
+import type { Database } from "@/types/database.types";
 
 export async function updateSupabaseSession(request: NextRequest) {
   if (!hasSupabaseConfig()) {
@@ -14,7 +15,7 @@ export async function updateSupabaseSession(request: NextRequest) {
   const { url, publishableKey } = getSupabaseConfig();
   let response = NextResponse.next({ request });
 
-  const supabase = createServerClient(url, publishableKey, {
+  const supabase = createServerClient<Database>(url, publishableKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
