@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --font-manrope: "Manrope", Arial, Helvetica, sans-serif;
   --color-brand: #ff0048;
   --color-brand-hover: #db003e;
   --color-text: #252329;
@@ -43,7 +44,7 @@ body {
   margin: 0;
   background: var(--color-background);
   color: var(--color-text);
-  font-family: var(--font-manrope), sans-serif;
+  font-family: var(--font-manrope);
   text-rendering: optimizeLegibility;
 }
 
