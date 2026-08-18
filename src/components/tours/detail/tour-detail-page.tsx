@@ -16,7 +16,7 @@ const visaLabels = { "visa-free": "Vizesiz", "visa-required": "Vizeli", special:
 
 export function TourDetailPage({ tour, detail, similarTours }: { tour: Tour; detail: TourDetail; similarTours: readonly Tour[] }) {
   const typeLabel = tour.type === "international" ? "Yurtdışı Turları" : "Yurtiçi Turlar";
-  const typeHref = tour.type === "international" ? "/yurtdisi-turlari" : "/yurtici-turlar";
+  const typeHref = tour.type === "international" ? "/yurtdisi-turlari" : "/yurtici-turlari";
 
   return (
     <TourDepartureProvider departures={detail.departures}>

@@ -6,7 +6,7 @@ import { getToursByType } from "@/data/demo-tours";
 export const metadata: Metadata = {
   title: "Yurtiçi Turlar",
   description: "Mivatur ile Türkiye'nin öne çıkan rotalarını keşfedin.",
-  alternates: { canonical: "/yurtici-turlar" },
+  alternates: { canonical: "/yurtici-turlari" },
 };
 
 export default function DomesticToursPage() {

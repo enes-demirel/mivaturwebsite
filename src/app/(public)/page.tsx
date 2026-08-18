@@ -26,7 +26,7 @@ export default function HomePage() {
         title="Öne Çıkan Yurtiçi Turları"
         description="Türkiye'nin doğasını, tarihini ve benzersiz şehirlerini keşfedeceğiniz rotalar."
         tours={getToursByType("domestic")}
-        viewAllHref="/yurtici-turlar"
+        viewAllHref="/yurtici-turlari"
         viewAllLabel="Tüm Yurtiçi Turlarını Gör"
         gridVariant="two-column"
       />
