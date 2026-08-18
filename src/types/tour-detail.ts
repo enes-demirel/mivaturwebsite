@@ -1,4 +1,5 @@
 import type { Currency } from "@/types/tour";
+import type { TourDayTransfer, TourInstallmentPlan } from "@/types/tour-payment";
 
 export type TourDepartureStatus = "available" | "planned" | "sold-out";
 
@@ -71,4 +72,6 @@ export type TourDetail = {
   visaFee?: number;
   guideDriverTip?: number;
   realContent?: boolean;
+  installmentPlan?: TourInstallmentPlan;
+  dayTransfers?: readonly TourDayTransfer[];
 };

@@ -6,6 +6,7 @@ import { TourDepartureProvider } from "@/components/tours/detail/tour-departure-
 import { TourDetailIntroSections, TourDetailSections } from "@/components/tours/detail/tour-detail-sections";
 import { TourGallery } from "@/components/tours/detail/tour-gallery";
 import { ReservationForm } from "@/components/tours/detail/reservation-form";
+import { TourInstallmentPlanCard } from "@/components/tours/detail/tour-installment-plan";
 import { Container } from "@/components/ui/container";
 import { siteConfig } from "@/data/site-config";
 import type { Tour } from "@/types/tour";
@@ -37,9 +38,7 @@ export function TourDetailPage({ tour, detail, similarTours }: { tour: Tour; det
         </div>
 
         <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start xl:gap-10">
-          <aside className="min-w-0 rounded-lg border border-border bg-surface p-5 shadow-card lg:col-start-2 lg:row-start-1" aria-label="Rezervasyon talebi formu">
-            <ReservationForm tourSlug={tour.slug} />
-          </aside>
+          <div className="min-w-0 space-y-5 lg:col-start-2 lg:row-start-1"><aside className="rounded-lg border border-border bg-surface p-5 shadow-card" aria-label="Rezervasyon talebi formu"><ReservationForm tourSlug={tour.slug} /></aside><TourInstallmentPlanCard plan={detail.installmentPlan} /></div>
           <div className="min-w-0 lg:col-start-1 lg:row-start-1">
             <TourDetailIntroSections detail={detail} />
           </div>

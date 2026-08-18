@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import type { NavigationItem } from "@/types/navigation";
+import { siteConfig } from "@/data/site-config";
 
 type MobileMenuProps = {
   items: readonly NavigationItem[];
@@ -64,7 +65,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
   }, [isOpen]);
 
   return (
-    <div className="lg:hidden">
+    <div className="xl:hidden">
       <button
         ref={triggerRef}
         type="button"
@@ -120,12 +121,15 @@ export function MobileMenu({ items }: MobileMenuProps) {
                 ))}
               </ul>
             </nav>
+            <a href={`tel:${siteConfig.phone}`} aria-label={`Mivatur'u ara: ${siteConfig.phoneDisplay}`} className="mt-auto flex min-h-16 items-center gap-3 rounded-lg border border-brand/20 bg-brand/5 px-4 text-brand"><PhoneIcon /><span><span className="block text-sm font-extrabold">Mivatur&apos;u Ara</span><span className="mt-0.5 block text-sm font-semibold text-text">{siteConfig.phoneDisplay}</span></span></a>
           </div>
         </div>
       )}
     </div>
   );
 }
+
+function PhoneIcon() { return <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7.2 3.5 10 8.4 7.8 10a15.5 15.5 0 0 0 6.2 6.2l1.6-2.2 4.9 2.8-.8 3a2 2 0 0 1-2.1 1.5C9.7 20.4 3.6 14.3 2.7 6.4a2 2 0 0 1 1.5-2.1l3-.8Z" /></svg>; }
 
 function MenuIcon() {
   return (

@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { createItineraryDayAction, deleteItineraryDayAction, moveItineraryDayAction, updateItineraryDayAction, type ContentActionResult } from "@/app/admin/(protected)/turlar/content-actions";
 import { ActionMessage, inputClass, MoveButtons, textareaClass } from "@/components/admin/tours/content/content-controls";
 import { ConfirmDeleteDialog } from "@/components/admin/tours/content/confirm-delete-dialog";
+import { DayTransfersEditor } from "@/components/admin/tours/content/day-transfers-editor";
 import type { GalleryItemView } from "@/components/admin/tours/media/tour-gallery-manager";
 import type { Database } from "@/types/database.types";
 
@@ -26,6 +27,7 @@ export function ItineraryManager({ tourId, days, gallery }: { tourId: string; da
     {days.length === 0 && editing !== "new" && <p className="rounded-md bg-background px-4 py-6 text-center text-sm text-muted">Henüz program günü eklenmedi.</p>}
     <div className="space-y-3">{days.map((day, index) => editing === day.id ? <ItineraryForm key={day.id} title={`${day.day_number}. Gün`} value={form} gallery={gallery} errors={result?.success === false ? result.fieldErrors : {}} busy={pending} setValue={setForm} onCancel={() => setEditing(null)} onSubmit={() => run(() => updateItineraryDayAction(tourId, day.id, form), true)} onImage={chooseImage} /> : <ItineraryCard key={day.id} day={day} imageUrl={gallery.find((image) => image.storage_path === day.image_path)?.publicUrl} index={index} count={days.length} busy={pending} onEdit={() => { setEditing(day.id); setForm(rowForm(day)); setResult(null); }} onDelete={() => setDeleting(day)} onPrevious={() => run(() => moveItineraryDayAction(tourId, day.id, "previous"))} onNext={() => run(() => moveItineraryDayAction(tourId, day.id, "next"))} />)}</div>
     <ConfirmDeleteDialog open={Boolean(deleting)} title="Program günü silinsin mi?" description={deleting ? `${deleting.day_number}. Gün — ${deleting.route || deleting.title}` : ""} busy={pending} onCancel={() => setDeleting(null)} onConfirm={() => deleting && run(async () => { const next = await deleteItineraryDayAction(tourId, deleting.id); if (next.success) setDeleting(null); return next; })} />
+    <DayTransfersEditor dayNumbers={days.map((day) => day.day_number)} />
   </div>;
 }
 

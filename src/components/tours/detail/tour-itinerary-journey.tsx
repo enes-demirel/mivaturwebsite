@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 
+import { JourneyTransferMarker } from "@/components/tours/detail/journey-transfer-marker";
 import type { TourItineraryDay } from "@/types/tour-detail";
+import type { TourDayTransfer } from "@/types/tour-payment";
 
-export function TourItineraryJourney({ days }: { days: readonly TourItineraryDay[] }) {
+export function TourItineraryJourney({ days, transfers = [] }: { days: readonly TourItineraryDay[]; transfers?: readonly TourDayTransfer[] }) {
   const [selectedDay, setSelectedDay] = useState<TourItineraryDay | null>(null);
   const journey = createJourneyLayout(days.length);
 
@@ -20,13 +22,21 @@ export function TourItineraryJourney({ days }: { days: readonly TourItineraryDay
             <DayNode day={day} onSelect={setSelectedDay} emphasized={index === 0} desktop />
           </div>
         ))}
+        {transfers.map((transfer) => {
+          const fromIndex = days.findIndex((day) => day.dayNumber === transfer.fromDayNumber);
+          const toIndex = days.findIndex((day) => day.dayNumber === transfer.toDayNumber);
+          if (fromIndex < 0 || toIndex !== fromIndex + 1) return null;
+          const from = journey.points[fromIndex]; const to = journey.points[toIndex];
+          return <div key={`${transfer.fromDayNumber}-${transfer.toDayNumber}`} className="pointer-events-none absolute z-10 w-48 -translate-x-1/2 -translate-y-1/2" style={{ left: `${(from.x + to.x) / 20}%`, top: (from.y + to.y) / 2 }}><JourneyTransferMarker transfer={transfer} desktop /></div>;
+        })}
       </div>
 
       <div className="relative space-y-3 pl-6 md:hidden">
         <div aria-hidden="true" className="absolute top-5 bottom-5 left-2 border-l border-dashed border-brand/30" />
-        {days.map((day, index) => (
-          <DayNode key={day.id} day={day} onSelect={setSelectedDay} emphasized={index === 0} mobile />
-        ))}
+        {days.map((day, index) => {
+          const transfer = transfers.find((item) => item.fromDayNumber === day.dayNumber && item.toDayNumber === days[index + 1]?.dayNumber);
+          return <Fragment key={day.id}><DayNode day={day} onSelect={setSelectedDay} emphasized={index === 0} mobile />{transfer && <JourneyTransferMarker transfer={transfer} />}</Fragment>;
+        })}
       </div>
 
       <TourDayModal day={selectedDay} onClose={() => setSelectedDay(null)} />

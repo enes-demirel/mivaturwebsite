@@ -33,7 +33,7 @@ export function TourDetailSections({ detail, similarTours }: { detail: TourDetai
   return (
     <div className="mt-14 space-y-14 sm:mt-16 sm:space-y-16 lg:space-y-20">
       <DetailSection id="itinerary" title="Gün gün yolculuk" description="Her güne dokunarak rotanın duraklarını ve program ayrıntılarını inceleyin.">
-        <TourItineraryJourney days={detail.itinerary} />
+        <TourItineraryJourney days={detail.itinerary} transfers={detail.dayTransfers} />
       </DetailSection>
 
       <DetailSection id="services" title="Tur kapsamı">
