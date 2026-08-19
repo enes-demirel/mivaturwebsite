@@ -121,7 +121,7 @@ export function MobileMenu({ items }: MobileMenuProps) {
                 ))}
               </ul>
             </nav>
-            <a href={`tel:${siteConfig.phone}`} aria-label={`Mivatur'u ara: ${siteConfig.phoneDisplay}`} className="mt-auto flex min-h-16 items-center gap-3 rounded-lg border border-brand/20 bg-brand/5 px-4 text-brand"><PhoneIcon /><span><span className="block text-sm font-extrabold">Mivatur&apos;u Ara</span><span className="mt-0.5 block text-sm font-semibold text-text">{siteConfig.phoneDisplay}</span></span></a>
+            <a href={`tel:${siteConfig.phone}`} aria-label={`Mivatur'u ara: ${siteConfig.phoneDisplay}`} className="mt-auto flex min-h-16 items-center gap-3 rounded-lg bg-brand px-4 text-white transition-colors hover:bg-[var(--color-brand-hover)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand"><PhoneIcon /><span><span className="block text-sm font-extrabold">Mivatur&apos;u Ara</span><span className="mt-0.5 block text-sm font-semibold text-white/90">{siteConfig.phoneDisplay}</span></span></a>
           </div>
         </div>
       )}
