@@ -6,9 +6,9 @@ const overviewCards = [
 ] as const;
 
 const systemStatus = [
-  "Supabase bağlantısı aktif",
+  "Cloudflare D1 bağlantısı aktif",
   "Admin oturumu doğrulandı",
-  "Veritabanı güvenlik politikaları aktif",
+  "D1 oturum doğrulaması aktif",
   "İçerik yönetimi sonraki aşamada eklenecek",
 ] as const;
 

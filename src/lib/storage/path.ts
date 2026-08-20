@@ -13,8 +13,9 @@ export function createPdfStoragePath(tourId: string) {
 }
 
 export function isValidTourStoragePath(path: string, tourId: string, extensions: readonly string[]) {
-  if (!uuid.safeParse(tourId).success || !path.startsWith(`${tourId}/`)) return false;
-  const fileName = path.slice(tourId.length + 1);
+  const prefix = extensions.includes("pdf") ? "tour-pdfs" : "tour-images";
+  if (!uuid.safeParse(tourId).success || !path.startsWith(`${prefix}/${tourId}/`)) return false;
+  const fileName = path.slice(prefix.length + tourId.length + 2);
   const match = /^([0-9a-f-]{36})\.([a-z0-9]+)$/.exec(fileName);
   return Boolean(match && uuid.safeParse(match[1]).success && extensions.includes(match[2]));
 }

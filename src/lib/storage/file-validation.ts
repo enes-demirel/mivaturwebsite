@@ -4,14 +4,14 @@ export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 export const MAX_PDF_SIZE = 10 * 1024 * 1024;
 export const MAX_IMAGE_UPLOAD_COUNT = 10;
 
-export const IMAGE_MIME_EXTENSIONS = {
+export const IMAGE_MIME_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
   "image/avif": "avif",
 } as const;
 
-export type ImageMimeType = keyof typeof IMAGE_MIME_EXTENSIONS;
+export type ImageMimeType = "image/jpeg" | "image/png" | "image/webp" | "image/avif";
 
 export function isImageMimeType(value: string): value is ImageMimeType {
   return value in IMAGE_MIME_EXTENSIONS;

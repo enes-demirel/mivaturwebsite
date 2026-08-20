@@ -2,26 +2,20 @@ import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/app/admin/giris/login-form";
 import { Logo } from "@/components/layout/logo";
-import { hasSupabaseConfig } from "@/lib/supabase/config";
-import { isCurrentUserAdmin } from "@/lib/supabase/auth";
+import { getAdmin } from "@/lib/auth/session";
 
 type AdminLoginPageProps = {
   searchParams: Promise<{ error?: string | string[] }>;
 };
 
 export default async function AdminLoginPage({ searchParams }: AdminLoginPageProps) {
-  const configured = hasSupabaseConfig();
-  if (configured && (await isCurrentUserAdmin())) redirect("/admin");
+  if (await getAdmin()) redirect("/admin");
 
   const query = await searchParams;
   const unauthorized =
     query.error === "yetkisiz" ||
     (Array.isArray(query.error) && query.error.includes("yetkisiz"));
-  const initialMessage = !configured
-    ? "Supabase bağlantısı henüz yapılandırılmamış. Gerekli environment değişkenlerini ekleyin."
-    : unauthorized
-      ? "Bu hesabın yönetim paneli yetkisi bulunmuyor."
-      : null;
+  const initialMessage = unauthorized ? "Bu hesabın yönetim paneli yetkisi bulunmuyor." : null;
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background px-5 py-10">

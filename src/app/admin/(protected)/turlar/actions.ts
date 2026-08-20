@@ -4,14 +4,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { requireAdmin } from "@/lib/supabase/auth";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/session";
+import { createTour, deleteDraftTour, departureCount, findTour, replaceInstallments, setTourStatus, updateTour, type DepartureRow, type TourRow } from "@/lib/db/repositories/tours";
 import { createTurkishSlug } from "@/lib/turkish-slug";
 import { tourSchema, type ValidatedTour } from "@/lib/validation/tour";
-import type { Database } from "@/types/database.types";
-
-type TourInsert = Database["public"]["Tables"]["tours"]["Insert"];
-type DepartureInsert = Database["public"]["Tables"]["tour_departures"]["Insert"];
+type TourInput = Omit<TourRow, "id" | "created_at" | "updated_at" | "cover_image_path" | "pdf_path">;
+type DepartureInput = Omit<DepartureRow, "id" | "tour_id" | "created_at" | "updated_at">;
 
 export type TourFormState = {
   message: string | null;
@@ -28,6 +26,8 @@ function text(formData: FormData, key: string) {
 function trimmedText(formData: FormData, key: string) {
   return text(formData, key).trim();
 }
+
+function parseInstallments(formData:FormData){if(formData.get("installments_enabled")!=="on")return {success:true as const,dates:[] as string[]};const count=Number(text(formData,"installment_count"));if(!Number.isInteger(count)||count<2||count>12)return {success:false as const};const dates=Array.from({length:count},(_,index)=>text(formData,`installments.${index}.due_date`));return dates.every(date=>/^\d{4}-\d{2}-\d{2}$/.test(date))?{success:true as const,dates}:{success:false as const};}
 
 function parseTourForm(formData: FormData) {
   const departureCountValue = Number.parseInt(text(formData, "departure_count"), 10);
@@ -94,7 +94,7 @@ function parseTourForm(formData: FormData) {
   return { success: false as const, error: { fieldErrors } };
 }
 
-function tourPayload(value: ValidatedTour): TourInsert {
+function tourPayload(value: ValidatedTour): TourInput {
   return {
     title: value.title,
     slug: value.slug,
@@ -117,12 +117,8 @@ function tourPayload(value: ValidatedTour): TourInsert {
   };
 }
 
-function departurePayload(
-  departure: ValidatedTour["departures"][number],
-  tourId: string,
-): DepartureInsert {
+function departurePayload(departure: ValidatedTour["departures"][number]): DepartureInput {
   return {
-    tour_id: tourId,
     start_date: departure.start_date,
     end_date: departure.end_date,
     departure_city: departure.departure_city,
@@ -152,31 +148,19 @@ export async function createTourAction(
 ): Promise<TourFormState> {
   await requireAdmin();
   const parsed = parseTourForm(formData);
+  const installments=parseInstallments(formData);
+  if(!installments.success)return {message:"Taksit tarihlerini eksiksiz girin.",fieldErrors:{installments:"Geçerli tarihler zorunludur."}};
   if (!parsed.success) return { message: "Form alanlarını kontrol edin.", fieldErrors: parsed.error.fieldErrors };
   if (parsed.data.status === "published" && parsed.data.departures.length === 0) {
     return { message: "Yayınlamak için en az bir kalkış tarihi ekleyin.", fieldErrors: { departures: "En az bir kalkış zorunludur." } };
   }
 
-  const supabase = await createClient();
-  const { data: tour, error: tourError } = await supabase
-    .from("tours")
-    .insert(tourPayload(parsed.data))
-    .select("id")
-    .single();
-  if (tourError || !tour) return safeMutationError(tourError?.code);
-
-  if (parsed.data.departures.length > 0) {
-    const { error: departureError } = await supabase
-      .from("tour_departures")
-      .insert(parsed.data.departures.map((departure) => departurePayload(departure, tour.id)));
-    if (departureError) {
-      await supabase.from("tours").delete().eq("id", tour.id).eq("status", parsed.data.status);
-      return safeMutationError(departureError.code);
-    }
-  }
+  let id: string;
+  try { id = await createTour(tourPayload(parsed.data), parsed.data.departures.map(departurePayload)); await replaceInstallments(id,installments.dates); }
+  catch (error) { return safeMutationError(error instanceof Error && error.message.includes("UNIQUE") ? "23505" : undefined); }
 
   revalidatePath("/admin/turlar");
-  redirect(`/admin/turlar/${tour.id}?created=1`);
+  redirect(`/admin/turlar/${id}?created=1`);
 }
 
 export async function updateTourAction(
@@ -187,37 +171,17 @@ export async function updateTourAction(
   await requireAdmin();
   if (!uuidSchema.safeParse(tourId).success) return safeMutationError();
   const parsed = parseTourForm(formData);
+  const installments=parseInstallments(formData);
+  if(!installments.success)return {message:"Taksit tarihlerini eksiksiz girin.",fieldErrors:{installments:"Geçerli tarihler zorunludur."}};
   if (!parsed.success) return { message: "Form alanlarını kontrol edin.", fieldErrors: parsed.error.fieldErrors };
   if (parsed.data.status === "published" && parsed.data.departures.length === 0) {
     return { message: "Yayınlamak için en az bir kalkış tarihi ekleyin.", fieldErrors: { departures: "En az bir kalkış zorunludur." } };
   }
 
-  const supabase = await createClient();
-  const { data: existingTour } = await supabase.from("tours").select("id").eq("id", tourId).maybeSingle();
+  const existingTour = await findTour(tourId);
   if (!existingTour) return { message: "Tur bulunamadı.", fieldErrors: {} };
-  const { data: existingDepartures, error: existingError } = await supabase.from("tour_departures").select("id").eq("tour_id", tourId);
-  if (existingError) return safeMutationError(existingError.code);
-
-  const existingIds = new Set((existingDepartures ?? []).map(({ id }) => id));
-  const submittedIds = parsed.data.departures.map(({ id }) => id).filter(Boolean);
-  if (submittedIds.some((id) => !existingIds.has(id))) return safeMutationError();
-
-  const { error: tourError } = await supabase.from("tours").update(tourPayload(parsed.data)).eq("id", tourId);
-  if (tourError) return safeMutationError(tourError.code);
-
-  const removedIds = [...existingIds].filter((id) => !submittedIds.includes(id));
-  if (removedIds.length > 0) {
-    const { error } = await supabase.from("tour_departures").delete().eq("tour_id", tourId).in("id", removedIds);
-    if (error) return safeMutationError(error.code);
-  }
-
-  for (const departure of parsed.data.departures) {
-    const payload = departurePayload(departure, tourId);
-    const result = departure.id
-      ? await supabase.from("tour_departures").update(payload).eq("tour_id", tourId).eq("id", departure.id)
-      : await supabase.from("tour_departures").insert(payload);
-    if (result.error) return safeMutationError(result.error.code);
-  }
+  try { await updateTour(tourId, tourPayload(parsed.data), parsed.data.departures.map((departure) => ({ ...departurePayload(departure), id: departure.id || crypto.randomUUID() }))); await replaceInstallments(tourId,installments.dates); }
+  catch (error) { return safeMutationError(error instanceof Error && error.message.includes("UNIQUE") ? "23505" : undefined); }
 
   revalidatePath("/admin/turlar");
   revalidatePath(`/admin/turlar/${tourId}`);
@@ -228,16 +192,13 @@ async function updateStatus(formData: FormData, status: "published" | "draft" | 
   await requireAdmin();
   const id = text(formData, "id");
   if (!uuidSchema.safeParse(id).success) redirect("/admin/turlar");
-  const supabase = await createClient();
   if (status === "published") {
-    const { data: tour } = await supabase.from("tours").select("title, slug, short_description, duration_days").eq("id", id).maybeSingle();
-    const { count } = await supabase.from("tour_departures").select("id", { count: "exact", head: true }).eq("tour_id", id);
-    if (!tour?.title || !tour.slug || !tour.short_description || tour.duration_days <= 0 || !count) {
+    const tour = await findTour(id);
+    if (!tour?.title || !tour.slug || !tour.short_description || tour.duration_days <= 0 || !(await departureCount(id))) {
       redirect(`/admin/turlar/${id}?error=yayin-eksik`);
     }
   }
-  const { error } = await supabase.from("tours").update({ status }).eq("id", id);
-  if (error) redirect(`/admin/turlar/${id}?error=islem`);
+  try { await setTourStatus(id, status); } catch { redirect(`/admin/turlar/${id}?error=islem`); }
   revalidatePath("/admin/turlar");
   revalidatePath(`/admin/turlar/${id}`);
   redirect(`/admin/turlar/${id}?updated=1`);
@@ -251,11 +212,9 @@ export async function deleteDraftTourAction(formData: FormData) {
   await requireAdmin();
   const id = text(formData, "id");
   if (!uuidSchema.safeParse(id).success) redirect("/admin/turlar");
-  const supabase = await createClient();
-  const { data: tour } = await supabase.from("tours").select("status").eq("id", id).maybeSingle();
+  const tour = await findTour(id);
   if (tour?.status !== "draft") redirect(`/admin/turlar/${id}?error=silme`);
-  const { error } = await supabase.from("tours").delete().eq("id", id).eq("status", "draft");
-  if (error) redirect(`/admin/turlar/${id}?error=islem`);
+  try { await deleteDraftTour(id); } catch { redirect(`/admin/turlar/${id}?error=islem`); }
   revalidatePath("/admin/turlar");
   redirect("/admin/turlar");
 }

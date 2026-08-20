@@ -1,10 +1,10 @@
 import { AdminMobileMenu } from "@/components/admin/admin-mobile-menu";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { requireAdmin } from "@/lib/supabase/auth";
+import { requireAdmin } from "@/lib/auth/session";
 
 export default async function ProtectedAdminLayout({ children }: { children: React.ReactNode }) {
   const claims = await requireAdmin();
-  const email = typeof claims.email === "string" ? claims.email : null;
+  const email = claims.email;
 
   return (
     <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[280px_minmax(0,1fr)]">

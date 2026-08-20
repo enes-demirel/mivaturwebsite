@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- Admin previews use public Supabase URLs without changing public-site remote image configuration. */
+/* eslint-disable @next/next/no-img-element -- Admin previews use internal R2 media URLs. */
 
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
@@ -12,15 +12,13 @@ import {
   updateGalleryAltTextAction,
   type MediaActionResult,
 } from "@/app/admin/(protected)/turlar/media-actions";
-import { createClient } from "@/lib/supabase/client";
+import { uploadAdminMedia } from "@/lib/storage/upload";
 import {
   formatFileSize,
-  IMAGE_BUCKET,
   isImageMimeType,
   MAX_IMAGE_UPLOAD_COUNT,
   validateImageFile,
 } from "@/lib/storage/file-validation";
-import { createImageStoragePath } from "@/lib/storage/path";
 import type { Database } from "@/types/database.types";
 
 type GalleryRow = Database["public"]["Tables"]["tour_gallery"]["Row"];
@@ -58,19 +56,12 @@ export function TourGalleryManager({ tourId, images }: { tourId: string; images:
     }
 
     setIsUploading(true);
-    const supabase = createClient();
     let successCount = 0;
     for (const item of pendingImages) {
       if (!isImageMimeType(item.file.type)) continue;
       setPendingImages((current) => current.map((entry) => entry.id === item.id ? { ...entry, status: "uploading", error: null } : entry));
-      const storagePath = createImageStoragePath(tourId, item.file.type);
-      // MIME/size checks here improve UX; bucket limits and Storage RLS remain the authoritative file boundary.
-      const { error: uploadError } = await supabase.storage.from(IMAGE_BUCKET).upload(storagePath, item.file, {
-        cacheControl: "31536000",
-        contentType: item.file.type,
-        upsert: false,
-      });
-      if (uploadError) {
+      const storagePath = await uploadAdminMedia(item.file, tourId, "image");
+      if (!storagePath) {
         setPendingImages((current) => current.map((entry) => entry.id === item.id ? { ...entry, status: "error", error: "Görsel Storage alanına yüklenemedi." } : entry));
         continue;
       }

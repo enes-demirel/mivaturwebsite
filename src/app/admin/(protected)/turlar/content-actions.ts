@@ -1,229 +1,29 @@
 "use server";
-
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-
-import { requireAdmin } from "@/lib/supabase/auth";
-import { createClient } from "@/lib/supabase/server";
-import {
-  faqSchema,
-  hotelSchema,
-  importantNoteSchema,
-  itinerarySchema,
-  serviceSchema,
-  serviceTypeSchema,
-  type FaqInput,
-  type HotelInput,
-  type ImportantNoteInput,
-  type ItineraryInput,
-  type ServiceInput,
-} from "@/lib/validation/tour-content";
-import type { Database } from "@/types/database.types";
-
-type ItineraryInsert = Database["public"]["Tables"]["tour_itinerary_days"]["Insert"];
-type HotelInsert = Database["public"]["Tables"]["tour_hotels"]["Insert"];
-type ServiceInsert = Database["public"]["Tables"]["tour_service_items"]["Insert"];
-type NoteInsert = Database["public"]["Tables"]["tour_important_notes"]["Insert"];
-type FaqInsert = Database["public"]["Tables"]["tour_faqs"]["Insert"];
-type ServiceType = z.infer<typeof serviceTypeSchema>;
-type Direction = "previous" | "next";
-
-export type ContentActionResult = { success: boolean; message: string; fieldErrors: Record<string, string> };
-
-const uuid = z.uuid();
-const directionSchema = z.enum(["previous", "next"]);
-const ok = (message: string): ContentActionResult => ({ success: true, message, fieldErrors: {} });
-const fail = (message = "İşlem tamamlanamadı. Lütfen tekrar deneyin.", fieldErrors: Record<string, string> = {}): ContentActionResult => ({ success: false, message, fieldErrors });
-
-function validationFailure(error: z.ZodError): ContentActionResult {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const key = issue.path.join(".");
-    if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
-  }
-  return fail("Form alanlarını kontrol edin.", fieldErrors);
-}
-
-function validIds(tourId: string, recordId?: string) {
-  return uuid.safeParse(tourId).success && (!recordId || uuid.safeParse(recordId).success);
-}
-
-async function tourExists(tourId: string) {
-  const supabase = await createClient();
-  const { data } = await supabase.from("tours").select("id").eq("id", tourId).maybeSingle();
-  return Boolean(data);
-}
-
-function refresh(tourId: string) {
-  revalidatePath(`/admin/turlar/${tourId}`);
-}
-
-function targetFor(rows: readonly { id: string }[], id: string, direction: Direction) {
-  const index = rows.findIndex((row) => row.id === id);
-  const target = direction === "previous" ? index - 1 : index + 1;
-  return index >= 0 && target >= 0 && target < rows.length ? { index, target } : null;
-}
-
-async function validateGalleryImage(tourId: string, imagePath: string | null, imageAlt: string | null) {
-  if (!imagePath) return { imagePath: null, imageAlt: null };
-  if (!imageAlt) return null;
-  const supabase = await createClient();
-  const { data } = await supabase.from("tour_gallery").select("storage_path").eq("tour_id", tourId).eq("storage_path", imagePath).maybeSingle();
-  return data ? { imagePath: data.storage_path, imageAlt } : null;
-}
-
-export async function createItineraryDayAction(tourId: string, input: ItineraryInput): Promise<ContentActionResult> {
-  await requireAdmin();
-  if (!validIds(tourId) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil.");
-  const parsed = itinerarySchema.safeParse(input);
-  if (!parsed.success) return validationFailure(parsed.error);
-  const image = await validateGalleryImage(tourId, parsed.data.image_path, parsed.data.image_alt);
-  if (!image) return fail("Seçilen görsel bu tura ait değil.", { image_path: "Geçerli bir galeri görseli seçin." });
-  const supabase = await createClient();
-  const { data: last } = await supabase.from("tour_itinerary_days").select("day_number").eq("tour_id", tourId).order("day_number", { ascending: false }).limit(1).maybeSingle();
-  const payload: ItineraryInsert = { ...parsed.data, image_path: image.imagePath, image_alt: image.imageAlt, tour_id: tourId, day_number: (last?.day_number ?? 0) + 1 };
-  const { error } = await supabase.from("tour_itinerary_days").insert(payload);
-  if (error) return fail("Program günü eklenemedi. Lütfen tekrar deneyin.");
-  refresh(tourId); return ok("Program günü eklendi.");
-}
-
-export async function updateItineraryDayAction(tourId: string, id: string, input: ItineraryInput): Promise<ContentActionResult> {
-  await requireAdmin();
-  if (!validIds(tourId, id) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil.");
-  const parsed = itinerarySchema.safeParse(input);
-  if (!parsed.success) return validationFailure(parsed.error);
-  const image = await validateGalleryImage(tourId, parsed.data.image_path, parsed.data.image_alt);
-  if (!image) return fail("Seçilen görsel bu tura ait değil.", { image_path: "Geçerli bir galeri görseli seçin." });
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("tour_itinerary_days").update({ ...parsed.data, image_path: image.imagePath, image_alt: image.imageAlt }).eq("id", id).eq("tour_id", tourId).select("id").maybeSingle();
-  if (error || !data) return fail("Program günü güncellenemedi.");
-  refresh(tourId); return ok("Program günü güncellendi.");
-}
-
-export async function moveItineraryDayAction(tourId: string, id: string, direction: Direction): Promise<ContentActionResult> {
-  await requireAdmin();
-  if (!validIds(tourId, id) || !directionSchema.safeParse(direction).success || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil.");
-  const supabase = await createClient();
-  const { data: rows, error } = await supabase.from("tour_itinerary_days").select("id, day_number").eq("tour_id", tourId).order("day_number");
-  if (error || !rows) return fail("Program sırası güncellenemedi.");
-  const move = targetFor(rows, id, direction);
-  if (!move) return fail("Program günü bu yönde taşınamaz.");
-  const current = rows[move.index]; const adjacent = rows[move.target];
-  const temporary = Math.max(...rows.map((row) => row.day_number)) + 1000;
-  const first = await supabase.from("tour_itinerary_days").update({ day_number: temporary }).eq("id", current.id).eq("tour_id", tourId);
-  if (first.error) return fail("Program sırası güncellenemedi.");
-  const second = await supabase.from("tour_itinerary_days").update({ day_number: current.day_number }).eq("id", adjacent.id).eq("tour_id", tourId);
-  if (second.error) {
-    await supabase.from("tour_itinerary_days").update({ day_number: current.day_number }).eq("id", current.id).eq("tour_id", tourId).eq("day_number", temporary);
-    return fail("Program sırası güncellenemedi.");
-  }
-  const third = await supabase.from("tour_itinerary_days").update({ day_number: adjacent.day_number }).eq("id", current.id).eq("tour_id", tourId);
-  if (third.error) {
-    await supabase.from("tour_itinerary_days").update({ day_number: adjacent.day_number }).eq("id", adjacent.id).eq("tour_id", tourId).eq("day_number", current.day_number);
-    await supabase.from("tour_itinerary_days").update({ day_number: current.day_number }).eq("id", current.id).eq("tour_id", tourId).eq("day_number", temporary);
-    return fail("Program sırası güncellenemedi.");
-  }
-  refresh(tourId); return ok("Program sırası güncellendi.");
-}
-
-export async function deleteItineraryDayAction(tourId: string, id: string): Promise<ContentActionResult> {
-  await requireAdmin();
-  if (!validIds(tourId, id) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil.");
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("tour_itinerary_days").delete().eq("id", id).eq("tour_id", tourId).select("id").maybeSingle();
-  if (error || !data) return fail("Program günü silinemedi.");
-  const { data: rows } = await supabase.from("tour_itinerary_days").select("id, day_number").eq("tour_id", tourId).order("day_number");
-  for (const [index, row] of (rows ?? []).entries()) if (row.day_number !== index + 1) await supabase.from("tour_itinerary_days").update({ day_number: index + 1 }).eq("id", row.id).eq("tour_id", tourId);
-  refresh(tourId); return ok("Program günü silindi.");
-}
-
-export async function createHotelAction(tourId: string, input: HotelInput): Promise<ContentActionResult> {
-  await requireAdmin();
-  if (!validIds(tourId) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil.");
-  const parsed = hotelSchema.safeParse(input); if (!parsed.success) return validationFailure(parsed.error);
-  const supabase = await createClient(); const { data: last } = await supabase.from("tour_hotels").select("sort_order").eq("tour_id", tourId).order("sort_order", { ascending: false }).limit(1).maybeSingle();
-  const payload: HotelInsert = { ...parsed.data, tour_id: tourId, sort_order: (last?.sort_order ?? -1) + 1 };
-  const { error } = await supabase.from("tour_hotels").insert(payload); if (error) return fail("Konaklama bilgisi kaydedilemedi.");
-  refresh(tourId); return ok("Konaklama eklendi.");
-}
-
-export async function updateHotelAction(tourId: string, id: string, input: HotelInput): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil.");
-  const parsed = hotelSchema.safeParse(input); if (!parsed.success) return validationFailure(parsed.error);
-  const supabase = await createClient(); const { data, error } = await supabase.from("tour_hotels").update(parsed.data).eq("id", id).eq("tour_id", tourId).select("id").maybeSingle();
-  if (error || !data) return fail("Konaklama bilgisi kaydedilemedi."); refresh(tourId); return ok("Konaklama güncellendi.");
-}
-
-export async function moveHotelAction(tourId: string, id: string, direction: Direction): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !directionSchema.safeParse(direction).success || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil.");
-  const supabase = await createClient(); const { data: rows } = await supabase.from("tour_hotels").select("id, sort_order").eq("tour_id", tourId).order("sort_order"); const move = rows ? targetFor(rows, id, direction) : null;
-  if (!rows || !move) return fail("Konaklama bu yönde taşınamaz.");
-  const a = await supabase.from("tour_hotels").update({ sort_order: move.target }).eq("id", rows[move.index].id).eq("tour_id", tourId); const b = await supabase.from("tour_hotels").update({ sort_order: move.index }).eq("id", rows[move.target].id).eq("tour_id", tourId);
-  if (a.error || b.error) return fail("Konaklama sırası güncellenemedi."); refresh(tourId); return ok("Konaklama sırası güncellendi.");
-}
-
-export async function deleteHotelAction(tourId: string, id: string): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const supabase = await createClient();
-  const { data, error } = await supabase.from("tour_hotels").delete().eq("id", id).eq("tour_id", tourId).select("id").maybeSingle(); if (error || !data) return fail("Konaklama silinemedi.");
-  const { data: rows } = await supabase.from("tour_hotels").select("id, sort_order").eq("tour_id", tourId).order("sort_order"); for (const [index, row] of (rows ?? []).entries()) if (row.sort_order !== index) await supabase.from("tour_hotels").update({ sort_order: index }).eq("id", row.id).eq("tour_id", tourId);
-  refresh(tourId); return ok("Konaklama silindi.");
-}
-
-export async function createServiceAction(tourId: string, type: ServiceType, input: ServiceInput): Promise<ContentActionResult> {
-  await requireAdmin(); const validType = serviceTypeSchema.safeParse(type); if (!validIds(tourId) || !validType.success || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil.");
-  const parsed = serviceSchema.safeParse(input); if (!parsed.success) return validationFailure(parsed.error); const supabase = await createClient();
-  const { data: last } = await supabase.from("tour_service_items").select("sort_order").eq("tour_id", tourId).eq("type", validType.data).order("sort_order", { ascending: false }).limit(1).maybeSingle(); const payload: ServiceInsert = { ...parsed.data, tour_id: tourId, type: validType.data, sort_order: (last?.sort_order ?? -1) + 1 };
-  const { error } = await supabase.from("tour_service_items").insert(payload); if (error) return fail("Hizmet maddesi eklenemedi."); refresh(tourId); return ok("Hizmet maddesi eklendi.");
-}
-
-export async function updateServiceAction(tourId: string, id: string, type: ServiceType, input: ServiceInput): Promise<ContentActionResult> {
-  await requireAdmin(); const validType = serviceTypeSchema.safeParse(type); if (!validIds(tourId, id) || !validType.success || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const parsed = serviceSchema.safeParse(input); if (!parsed.success) return validationFailure(parsed.error); const supabase = await createClient();
-  const { data, error } = await supabase.from("tour_service_items").update(parsed.data).eq("id", id).eq("tour_id", tourId).eq("type", validType.data).select("id").maybeSingle(); if (error || !data) return fail("Hizmet maddesi güncellenemedi."); refresh(tourId); return ok("Hizmet maddesi güncellendi.");
-}
-
-export async function moveServiceAction(tourId: string, id: string, type: ServiceType, direction: Direction): Promise<ContentActionResult> {
-  await requireAdmin(); const validType = serviceTypeSchema.safeParse(type); if (!validIds(tourId, id) || !validType.success || !directionSchema.safeParse(direction).success || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const supabase = await createClient();
-  const { data: rows } = await supabase.from("tour_service_items").select("id, sort_order").eq("tour_id", tourId).eq("type", validType.data).order("sort_order"); const move = rows ? targetFor(rows, id, direction) : null; if (!rows || !move) return fail("Hizmet maddesi bu yönde taşınamaz.");
-  const a = await supabase.from("tour_service_items").update({ sort_order: move.target }).eq("id", rows[move.index].id).eq("tour_id", tourId).eq("type", validType.data); const b = await supabase.from("tour_service_items").update({ sort_order: move.index }).eq("id", rows[move.target].id).eq("tour_id", tourId).eq("type", validType.data); if (a.error || b.error) return fail("Hizmet sırası güncellenemedi."); refresh(tourId); return ok("Hizmet sırası güncellendi.");
-}
-
-export async function deleteServiceAction(tourId: string, id: string, type: ServiceType): Promise<ContentActionResult> {
-  await requireAdmin(); const validType = serviceTypeSchema.safeParse(type); if (!validIds(tourId, id) || !validType.success || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const supabase = await createClient();
-  const { data, error } = await supabase.from("tour_service_items").delete().eq("id", id).eq("tour_id", tourId).eq("type", validType.data).select("id").maybeSingle(); if (error || !data) return fail("Hizmet maddesi silinemedi."); const { data: rows } = await supabase.from("tour_service_items").select("id, sort_order").eq("tour_id", tourId).eq("type", validType.data).order("sort_order"); for (const [index, row] of (rows ?? []).entries()) if (row.sort_order !== index) await supabase.from("tour_service_items").update({ sort_order: index }).eq("id", row.id).eq("tour_id", tourId).eq("type", validType.data); refresh(tourId); return ok("Hizmet maddesi silindi.");
-}
-
-export async function createImportantNoteAction(tourId: string, input: ImportantNoteInput): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const parsed = importantNoteSchema.safeParse(input); if (!parsed.success) return validationFailure(parsed.error); const supabase = await createClient(); const { data: last } = await supabase.from("tour_important_notes").select("sort_order").eq("tour_id", tourId).order("sort_order", { ascending: false }).limit(1).maybeSingle(); const payload: NoteInsert = { ...parsed.data, tour_id: tourId, sort_order: (last?.sort_order ?? -1) + 1 }; const { error } = await supabase.from("tour_important_notes").insert(payload); if (error) return fail("Önemli bilgi eklenemedi."); refresh(tourId); return ok("Önemli bilgi eklendi.");
-}
-
-export async function updateImportantNoteAction(tourId: string, id: string, input: ImportantNoteInput): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const parsed = importantNoteSchema.safeParse(input); if (!parsed.success) return validationFailure(parsed.error); const supabase = await createClient(); const { data, error } = await supabase.from("tour_important_notes").update(parsed.data).eq("id", id).eq("tour_id", tourId).select("id").maybeSingle(); if (error || !data) return fail("Önemli bilgi güncellenemedi."); refresh(tourId); return ok("Önemli bilgi güncellendi.");
-}
-
-export async function moveImportantNoteAction(tourId: string, id: string, direction: Direction): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !directionSchema.safeParse(direction).success || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const supabase = await createClient(); const { data: rows } = await supabase.from("tour_important_notes").select("id, sort_order").eq("tour_id", tourId).order("sort_order"); const move = rows ? targetFor(rows, id, direction) : null; if (!rows || !move) return fail("Önemli bilgi bu yönde taşınamaz."); const a = await supabase.from("tour_important_notes").update({ sort_order: move.target }).eq("id", rows[move.index].id).eq("tour_id", tourId); const b = await supabase.from("tour_important_notes").update({ sort_order: move.index }).eq("id", rows[move.target].id).eq("tour_id", tourId); if (a.error || b.error) return fail("Önemli bilgi sırası güncellenemedi."); refresh(tourId); return ok("Önemli bilgi sırası güncellendi.");
-}
-
-export async function deleteImportantNoteAction(tourId: string, id: string): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const supabase = await createClient(); const { data, error } = await supabase.from("tour_important_notes").delete().eq("id", id).eq("tour_id", tourId).select("id").maybeSingle(); if (error || !data) return fail("Önemli bilgi silinemedi."); const { data: rows } = await supabase.from("tour_important_notes").select("id, sort_order").eq("tour_id", tourId).order("sort_order"); for (const [index, row] of (rows ?? []).entries()) if (row.sort_order !== index) await supabase.from("tour_important_notes").update({ sort_order: index }).eq("id", row.id).eq("tour_id", tourId); refresh(tourId); return ok("Önemli bilgi silindi.");
-}
-
-export async function createFaqAction(tourId: string, input: FaqInput): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const parsed = faqSchema.safeParse(input); if (!parsed.success) return validationFailure(parsed.error); const supabase = await createClient(); const { data: last } = await supabase.from("tour_faqs").select("sort_order").eq("tour_id", tourId).order("sort_order", { ascending: false }).limit(1).maybeSingle(); const payload: FaqInsert = { ...parsed.data, tour_id: tourId, sort_order: (last?.sort_order ?? -1) + 1 }; const { error } = await supabase.from("tour_faqs").insert(payload); if (error) return fail("SSS eklenemedi."); refresh(tourId); return ok("SSS eklendi.");
-}
-
-export async function updateFaqAction(tourId: string, id: string, input: FaqInput): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const parsed = faqSchema.safeParse(input); if (!parsed.success) return validationFailure(parsed.error); const supabase = await createClient(); const { data, error } = await supabase.from("tour_faqs").update(parsed.data).eq("id", id).eq("tour_id", tourId).select("id").maybeSingle(); if (error || !data) return fail("SSS güncellenemedi."); refresh(tourId); return ok("SSS güncellendi.");
-}
-
-export async function toggleFaqPublishedAction(tourId: string, id: string, published: boolean): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || typeof published !== "boolean" || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const supabase = await createClient(); const { data, error } = await supabase.from("tour_faqs").update({ published }).eq("id", id).eq("tour_id", tourId).select("id").maybeSingle(); if (error || !data) return fail("SSS yayın durumu güncellenemedi."); refresh(tourId); return ok(published ? "SSS yayınlandı." : "SSS taslağa alındı.");
-}
-
-export async function moveFaqAction(tourId: string, id: string, direction: Direction): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !directionSchema.safeParse(direction).success || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const supabase = await createClient(); const { data: rows } = await supabase.from("tour_faqs").select("id, sort_order").eq("tour_id", tourId).order("sort_order"); const move = rows ? targetFor(rows, id, direction) : null; if (!rows || !move) return fail("SSS bu yönde taşınamaz."); const a = await supabase.from("tour_faqs").update({ sort_order: move.target }).eq("id", rows[move.index].id).eq("tour_id", tourId); const b = await supabase.from("tour_faqs").update({ sort_order: move.index }).eq("id", rows[move.target].id).eq("tour_id", tourId); if (a.error || b.error) return fail("SSS sırası güncellenemedi."); refresh(tourId); return ok("SSS sırası güncellendi.");
-}
-
-export async function deleteFaqAction(tourId: string, id: string): Promise<ContentActionResult> {
-  await requireAdmin(); if (!validIds(tourId, id) || !(await tourExists(tourId))) return fail("Kayıt bulunamadı veya bu tura ait değil."); const supabase = await createClient(); const { data, error } = await supabase.from("tour_faqs").delete().eq("id", id).eq("tour_id", tourId).select("id").maybeSingle(); if (error || !data) return fail("SSS silinemedi."); const { data: rows } = await supabase.from("tour_faqs").select("id, sort_order").eq("tour_id", tourId).order("sort_order"); for (const [index, row] of (rows ?? []).entries()) if (row.sort_order !== index) await supabase.from("tour_faqs").update({ sort_order: index }).eq("id", row.id).eq("tour_id", tourId); refresh(tourId); return ok("SSS silindi.");
-}
+import { requireAdmin } from "@/lib/auth/session";
+import { all,batch,first,run } from "@/lib/db/query";
+import { faqSchema,hotelSchema,importantNoteSchema,itinerarySchema,serviceSchema,serviceTypeSchema,type FaqInput,type HotelInput,type ImportantNoteInput,type ItineraryInput,type ServiceInput } from "@/lib/validation/tour-content";
+export type ContentActionResult={success:boolean;message:string;fieldErrors:Record<string,string>}; type Direction="previous"|"next";type ServiceType=z.infer<typeof serviceTypeSchema>;
+const uuid=z.uuid(),ok=(message:string):ContentActionResult=>({success:true,message,fieldErrors:{}}),fail=(message="İşlem tamamlanamadı. Lütfen tekrar deneyin.",fieldErrors:Record<string,string>={}):ContentActionResult=>({success:false,message,fieldErrors});
+function validation(error:z.ZodError){const fields:Record<string,string>={};for(const issue of error.issues){const key=issue.path.join(".");if(key&&!fields[key])fields[key]=issue.message;}return fail("Form alanlarını kontrol edin.",fields);}async function guard(tourId:string,id?:string){await requireAdmin();return uuid.safeParse(tourId).success&&(!id||uuid.safeParse(id).success)&&Boolean(await first("SELECT id FROM tours WHERE id=?",[tourId]));}function refresh(id:string){revalidatePath(`/admin/turlar/${id}`);}const now=()=>new Date().toISOString();
+async function next(table:string,tourId:string,column:string){return((await first<{value:number|null}>(`SELECT MAX(${column}) value FROM ${table} WHERE tour_id=?`,[tourId]))?.value??(column==="day_number"?0:-1))+1;}
+async function move(table:string,column:string,tourId:string,id:string,direction:Direction,filter="",values:readonly unknown[]=[]){const rows=await all<{id:string;position:number}>(`SELECT id,${column} position FROM ${table} WHERE tour_id=? ${filter} ORDER BY ${column}`,[tourId,...values]);const index=rows.findIndex(r=>r.id===id),target=direction==="previous"?index-1:index+1;if(index<0||target<0||target>=rows.length)return false;const temp=Math.max(...rows.map(r=>r.position))+1000;await batch([{sql:`UPDATE ${table} SET ${column}=? WHERE id=? AND tour_id=?`,values:[temp,rows[index].id,tourId]},{sql:`UPDATE ${table} SET ${column}=? WHERE id=? AND tour_id=?`,values:[rows[index].position,rows[target].id,tourId]},{sql:`UPDATE ${table} SET ${column}=? WHERE id=? AND tour_id=?`,values:[rows[target].position,rows[index].id,tourId]}]);return true;}
+async function remove(table:string,column:string,tourId:string,id:string,filter="",values:readonly unknown[]=[]){const deleted=await run(`DELETE FROM ${table} WHERE id=? AND tour_id=?`,[id,tourId]);if(!deleted.meta.changes)return false;const rows=await all<{id:string}>(`SELECT id FROM ${table} WHERE tour_id=? ${filter} ORDER BY ${column}`,[tourId,...values]);await batch(rows.map((r,i)=>({sql:`UPDATE ${table} SET ${column}=? WHERE id=?`,values:[column==="day_number"?i+1:i,r.id]})));return true;}
+export async function createItineraryDayAction(tourId:string,input:ItineraryInput){if(!await guard(tourId))return fail();const p=itinerarySchema.safeParse(input);if(!p.success)return validation(p.error);if(p.data.image_path&&!await first("SELECT id FROM tour_gallery WHERE tour_id=? AND storage_path=?",[tourId,p.data.image_path]))return fail("Seçilen görsel bu tura ait değil.");const stamp=now();await run("INSERT INTO tour_itinerary_days (id,tour_id,day_number,title,route,summary,description,image_path,image_alt,highlights,transportation,accommodation,meals,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[crypto.randomUUID(),tourId,await next("tour_itinerary_days",tourId,"day_number"),p.data.title,p.data.route,p.data.summary,p.data.description,p.data.image_path,p.data.image_alt,JSON.stringify(p.data.highlights),p.data.transportation,p.data.accommodation,p.data.meals,stamp,stamp]);refresh(tourId);return ok("Program günü eklendi.");}
+export async function updateItineraryDayAction(tourId:string,id:string,input:ItineraryInput){if(!await guard(tourId,id))return fail();const p=itinerarySchema.safeParse(input);if(!p.success)return validation(p.error);if(p.data.image_path&&!await first("SELECT id FROM tour_gallery WHERE tour_id=? AND storage_path=?",[tourId,p.data.image_path]))return fail("Seçilen görsel bu tura ait değil.");const result=await run("UPDATE tour_itinerary_days SET title=?,route=?,summary=?,description=?,image_path=?,image_alt=?,highlights=?,transportation=?,accommodation=?,meals=?,updated_at=? WHERE id=? AND tour_id=?",[p.data.title,p.data.route,p.data.summary,p.data.description,p.data.image_path,p.data.image_alt,JSON.stringify(p.data.highlights),p.data.transportation,p.data.accommodation,p.data.meals,now(),id,tourId]);if(!result.meta.changes)return fail();refresh(tourId);return ok("Program günü güncellendi.");}
+export async function moveItineraryDayAction(tourId:string,id:string,direction:Direction){if(!await guard(tourId,id)||!await move("tour_itinerary_days","day_number",tourId,id,direction))return fail("Program günü bu yönde taşınamaz.");refresh(tourId);return ok("Program sırası güncellendi.");}
+export async function deleteItineraryDayAction(tourId:string,id:string){if(!await guard(tourId,id)||!await remove("tour_itinerary_days","day_number",tourId,id))return fail();const count=(await first<{count:number}>("SELECT COUNT(*) count FROM tour_itinerary_days WHERE tour_id=?",[tourId]))?.count??0;await run("DELETE FROM tour_day_transfers WHERE tour_id=? AND (from_day_number>=? OR to_day_number>?)",[tourId,count,count]);refresh(tourId);return ok("Program günü silindi.");}
+export async function createHotelAction(tourId:string,input:HotelInput){if(!await guard(tourId))return fail();const p=hotelSchema.safeParse(input);if(!p.success)return validation(p.error);await run("INSERT INTO tour_hotels (id,tour_id,city,night_count,hotel_name,stars,sort_order) VALUES (?,?,?,?,?,?,?)",[crypto.randomUUID(),tourId,p.data.city,p.data.night_count,p.data.hotel_name,p.data.stars,await next("tour_hotels",tourId,"sort_order")]);refresh(tourId);return ok("Konaklama eklendi.");}
+export async function updateHotelAction(tourId:string,id:string,input:HotelInput){if(!await guard(tourId,id))return fail();const p=hotelSchema.safeParse(input);if(!p.success)return validation(p.error);if(!(await run("UPDATE tour_hotels SET city=?,night_count=?,hotel_name=?,stars=? WHERE id=? AND tour_id=?",[p.data.city,p.data.night_count,p.data.hotel_name,p.data.stars,id,tourId])).meta.changes)return fail();refresh(tourId);return ok("Konaklama güncellendi.");}
+export async function moveHotelAction(tourId:string,id:string,direction:Direction){if(!await guard(tourId,id)||!await move("tour_hotels","sort_order",tourId,id,direction))return fail("Konaklama bu yönde taşınamaz.");refresh(tourId);return ok("Konaklama sırası güncellendi.");}export async function deleteHotelAction(tourId:string,id:string){if(!await guard(tourId,id)||!await remove("tour_hotels","sort_order",tourId,id))return fail();refresh(tourId);return ok("Konaklama silindi.");}
+export async function createServiceAction(tourId:string,type:ServiceType,input:ServiceInput){if(!await guard(tourId)||!serviceTypeSchema.safeParse(type).success)return fail();const p=serviceSchema.safeParse(input);if(!p.success)return validation(p.error);await run("INSERT INTO tour_service_items (id,tour_id,type,content,sort_order,created_at) VALUES (?,?,?,?,?,?)",[crypto.randomUUID(),tourId,type,p.data.content,await next("tour_service_items",tourId,"sort_order"),now()]);refresh(tourId);return ok("Hizmet maddesi eklendi.");}
+export async function updateServiceAction(tourId:string,id:string,type:ServiceType,input:ServiceInput){if(!await guard(tourId,id))return fail();const p=serviceSchema.safeParse(input);if(!p.success)return validation(p.error);if(!(await run("UPDATE tour_service_items SET content=? WHERE id=? AND tour_id=? AND type=?",[p.data.content,id,tourId,type])).meta.changes)return fail();refresh(tourId);return ok("Hizmet maddesi güncellendi.");}
+export async function moveServiceAction(tourId:string,id:string,type:ServiceType,direction:Direction){if(!await guard(tourId,id)||!await move("tour_service_items","sort_order",tourId,id,direction,"AND type=?",[type]))return fail("Hizmet maddesi bu yönde taşınamaz.");refresh(tourId);return ok("Hizmet sırası güncellendi.");}export async function deleteServiceAction(tourId:string,id:string,type:ServiceType){if(!await guard(tourId,id)||!await remove("tour_service_items","sort_order",tourId,id,"AND type=?",[type]))return fail();refresh(tourId);return ok("Hizmet maddesi silindi.");}
+export async function createImportantNoteAction(tourId:string,input:ImportantNoteInput){if(!await guard(tourId))return fail();const p=importantNoteSchema.safeParse(input);if(!p.success)return validation(p.error);const stamp=now();await run("INSERT INTO tour_important_notes (id,tour_id,title,content,sort_order,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",[crypto.randomUUID(),tourId,p.data.title,p.data.content,await next("tour_important_notes",tourId,"sort_order"),stamp,stamp]);refresh(tourId);return ok("Önemli bilgi eklendi.");}
+export async function updateImportantNoteAction(tourId:string,id:string,input:ImportantNoteInput){if(!await guard(tourId,id))return fail();const p=importantNoteSchema.safeParse(input);if(!p.success)return validation(p.error);if(!(await run("UPDATE tour_important_notes SET title=?,content=?,updated_at=? WHERE id=? AND tour_id=?",[p.data.title,p.data.content,now(),id,tourId])).meta.changes)return fail();refresh(tourId);return ok("Önemli bilgi güncellendi.");}
+export async function moveImportantNoteAction(tourId:string,id:string,direction:Direction){if(!await guard(tourId,id)||!await move("tour_important_notes","sort_order",tourId,id,direction))return fail();refresh(tourId);return ok("Önemli bilgi sırası güncellendi.");}export async function deleteImportantNoteAction(tourId:string,id:string){if(!await guard(tourId,id)||!await remove("tour_important_notes","sort_order",tourId,id))return fail();refresh(tourId);return ok("Önemli bilgi silindi.");}
+export async function createFaqAction(tourId:string,input:FaqInput){if(!await guard(tourId))return fail();const p=faqSchema.safeParse(input);if(!p.success)return validation(p.error);const stamp=now();await run("INSERT INTO tour_faqs (id,tour_id,question,answer,sort_order,published,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)",[crypto.randomUUID(),tourId,p.data.question,p.data.answer,await next("tour_faqs",tourId,"sort_order"),p.data.published?1:0,stamp,stamp]);refresh(tourId);return ok("SSS eklendi.");}
+export async function updateFaqAction(tourId:string,id:string,input:FaqInput){if(!await guard(tourId,id))return fail();const p=faqSchema.safeParse(input);if(!p.success)return validation(p.error);if(!(await run("UPDATE tour_faqs SET question=?,answer=?,published=?,updated_at=? WHERE id=? AND tour_id=?",[p.data.question,p.data.answer,p.data.published?1:0,now(),id,tourId])).meta.changes)return fail();refresh(tourId);return ok("SSS güncellendi.");}
+export async function toggleFaqPublishedAction(tourId:string,id:string,published:boolean){if(!await guard(tourId,id))return fail();if(!(await run("UPDATE tour_faqs SET published=?,updated_at=? WHERE id=? AND tour_id=?",[published?1:0,now(),id,tourId])).meta.changes)return fail();refresh(tourId);return ok(published?"SSS yayınlandı.":"SSS taslağa alındı.");}
+export async function moveFaqAction(tourId:string,id:string,direction:Direction){if(!await guard(tourId,id)||!await move("tour_faqs","sort_order",tourId,id,direction))return fail();refresh(tourId);return ok("SSS sırası güncellendi.");}export async function deleteFaqAction(tourId:string,id:string){if(!await guard(tourId,id)||!await remove("tour_faqs","sort_order",tourId,id))return fail();refresh(tourId);return ok("SSS silindi.");}

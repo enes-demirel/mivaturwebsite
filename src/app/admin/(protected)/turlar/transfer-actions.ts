@@ -1,0 +1,7 @@
+"use server";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requireAdmin } from "@/lib/auth/session";
+import { batch,first } from "@/lib/db/query";
+const schema=z.array(z.object({fromDayNumber:z.number().int().min(1),toDayNumber:z.number().int().min(2),transportMode:z.enum(["plane","train","bus","ship"]),distanceKm:z.number().int().min(1).max(30000).nullable()})).max(100);
+export async function replaceDayTransfersAction(tourId:string,input:unknown){await requireAdmin();if(!z.uuid().safeParse(tourId).success)return{success:false,message:"Geçersiz tur kaydı."};const parsed=schema.safeParse(input);if(!parsed.success||parsed.data.some(item=>item.toDayNumber!==item.fromDayNumber+1))return{success:false,message:"Yolculuk bilgilerini kontrol edin."};const count=(await first<{count:number}>("SELECT COUNT(*) count FROM tour_itinerary_days WHERE tour_id=?",[tourId]))?.count??0;if(parsed.data.some(item=>item.toDayNumber>count))return{success:false,message:"Program günü aralığı geçersiz."};const stamp=new Date().toISOString();await batch([{sql:"DELETE FROM tour_day_transfers WHERE tour_id=?",values:[tourId]},...parsed.data.map(item=>({sql:"INSERT INTO tour_day_transfers (id,tour_id,from_day_number,to_day_number,transport_mode,distance_km,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)",values:[crypto.randomUUID(),tourId,item.fromDayNumber,item.toDayNumber,item.transportMode,item.distanceKm,stamp,stamp]}))]);revalidatePath(`/admin/turlar/${tourId}`);return{success:true,message:"Günler arası yolculuklar kaydedildi."};}

@@ -2,10 +2,9 @@
 
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import { destroyAdminSession } from "@/lib/auth/session";
 
 export async function logoutAction() {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
+  await destroyAdminSession();
   redirect("/admin/giris");
 }

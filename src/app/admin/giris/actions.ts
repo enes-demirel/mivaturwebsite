@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { createClient } from "@/lib/supabase/server";
+import { verifyPassword } from "@/lib/auth/password";
+import { createAdminSession } from "@/lib/auth/session";
+import { first } from "@/lib/db/query";
 
 export type LoginActionState = {
   message: string | null;
@@ -28,27 +30,11 @@ export async function loginAction(
     return { message: parsed.error.issues[0]?.message ?? "Alanları kontrol edin." };
   }
 
-  let supabase;
-  try {
-    supabase = await createClient();
-  } catch {
-    return { message: "Supabase bağlantısı henüz yapılandırılmamış." };
-  }
-
-  const { error: signInError } = await supabase.auth.signInWithPassword(
-    parsed.data,
-  );
-
-  if (signInError) {
+  const user = await first<{ id: string; password_hash: string; active: number }>("SELECT id, password_hash, active FROM admin_users WHERE email = ? COLLATE NOCASE LIMIT 1", [parsed.data.email]);
+  if (!user || user.active !== 1 || !(await verifyPassword(parsed.data.password, user.password_hash))) {
     return { message: "E-posta veya şifre hatalı." };
   }
-
-  const { data: isAdmin, error: adminError } = await supabase.rpc("is_admin");
-
-  if (adminError || isAdmin !== true) {
-    await supabase.auth.signOut();
-    return { message: "Bu hesabın yönetim paneli yetkisi bulunmuyor." };
-  }
+  await createAdminSession(user.id);
 
   revalidatePath("/admin", "layout");
   redirect("/admin");

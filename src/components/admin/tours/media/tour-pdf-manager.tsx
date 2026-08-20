@@ -4,9 +4,8 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { deleteTourPdfAction, registerTourPdfAction, type MediaActionResult } from "@/app/admin/(protected)/turlar/media-actions";
-import { createClient } from "@/lib/supabase/client";
-import { formatFileSize, PDF_BUCKET, validatePdfFile } from "@/lib/storage/file-validation";
-import { createPdfStoragePath } from "@/lib/storage/path";
+import { uploadAdminMedia } from "@/lib/storage/upload";
+import { formatFileSize, validatePdfFile } from "@/lib/storage/file-validation";
 
 export function TourPdfManager({ tourId, pdfUrl }: { tourId: string; pdfUrl: string | null }) {
   const router = useRouter();
@@ -28,16 +27,13 @@ export function TourPdfManager({ tourId, pdfUrl }: { tourId: string; pdfUrl: str
     const validationError = validatePdfFile(file);
     if (validationError) { setFileError(validationError); return; }
     setBusy(true);
-    const storagePath = createPdfStoragePath(tourId);
-    const supabase = createClient();
-    // Client checks are UX safeguards; bucket MIME/size limits and Storage RLS are authoritative.
-    const { data, error } = await supabase.storage.from(PDF_BUCKET).upload(storagePath, file, { cacheControl: "31536000", contentType: "application/pdf", upsert: false });
-    if (error || !data?.path) {
+    const storagePath = await uploadAdminMedia(file, tourId, "pdf");
+    if (!storagePath) {
       setMessage({ success: false, message: "PDF Storage alanına yüklenemedi." });
       setBusy(false);
       return;
     }
-    const result = await registerTourPdfAction({ tourId, storagePath: data.path, mimeType: file.type, fileSize: file.size });
+    const result = await registerTourPdfAction({ tourId, storagePath, mimeType: file.type, fileSize: file.size });
     setMessage(result);
     setBusy(false);
     if (result.success) {

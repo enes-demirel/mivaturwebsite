@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @next/next/no-img-element -- Admin-only Supabase gallery thumbnails use public bucket URLs. */
+/* eslint-disable @next/next/no-img-element -- Admin-only R2 gallery thumbnails use internal media URLs. */
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -10,6 +10,7 @@ import { ConfirmDeleteDialog } from "@/components/admin/tours/content/confirm-de
 import { DayTransfersEditor } from "@/components/admin/tours/content/day-transfers-editor";
 import type { GalleryItemView } from "@/components/admin/tours/media/tour-gallery-manager";
 import type { Database } from "@/types/database.types";
+import type { TransferRow } from "@/lib/db/repositories/tour-content";
 
 type ItineraryRow = Database["public"]["Tables"]["tour_itinerary_days"]["Row"];
 type FormValue = { title: string; route: string; summary: string; description: string; image_path: string; image_alt: string; highlights: string[]; transportation: string; accommodation: string; meals: string };
@@ -18,7 +19,7 @@ const emptyForm = (): FormValue => ({ title: "", route: "", summary: "", descrip
 function highlightsOf(value: ItineraryRow["highlights"]) { return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []; }
 function rowForm(row: ItineraryRow): FormValue { return { title: row.title, route: row.route ?? "", summary: row.summary ?? "", description: row.description ?? "", image_path: row.image_path ?? "", image_alt: row.image_alt ?? "", highlights: highlightsOf(row.highlights), transportation: row.transportation ?? "", accommodation: row.accommodation ?? "", meals: row.meals ?? "" }; }
 
-export function ItineraryManager({ tourId, days, gallery }: { tourId: string; days: readonly ItineraryRow[]; gallery: readonly GalleryItemView[] }) {
+export function ItineraryManager({ tourId, days, gallery, transfers }: { tourId: string; days: readonly ItineraryRow[]; gallery: readonly GalleryItemView[]; transfers: readonly TransferRow[] }) {
   const router = useRouter(); const [editing, setEditing] = useState<string | "new" | null>(null); const [form, setForm] = useState<FormValue>(emptyForm); const [result, setResult] = useState<ContentActionResult | null>(null); const [deleting, setDeleting] = useState<ItineraryRow | null>(null); const [pending, startTransition] = useTransition();
   function run(action: () => Promise<ContentActionResult>, close = false) { startTransition(async () => { const next = await action(); setResult(next); if (next.success) { if (close) setEditing(null); router.refresh(); } }); }
   function chooseImage(path: string) { const selected = gallery.find((image) => image.storage_path === path); setForm((current) => ({ ...current, image_path: path, image_alt: selected?.alt_text ?? (path ? current.image_alt : "") })); }
@@ -27,7 +28,7 @@ export function ItineraryManager({ tourId, days, gallery }: { tourId: string; da
     {days.length === 0 && editing !== "new" && <p className="rounded-md bg-background px-4 py-6 text-center text-sm text-muted">Henüz program günü eklenmedi.</p>}
     <div className="space-y-3">{days.map((day, index) => editing === day.id ? <ItineraryForm key={day.id} title={`${day.day_number}. Gün`} value={form} gallery={gallery} errors={result?.success === false ? result.fieldErrors : {}} busy={pending} setValue={setForm} onCancel={() => setEditing(null)} onSubmit={() => run(() => updateItineraryDayAction(tourId, day.id, form), true)} onImage={chooseImage} /> : <ItineraryCard key={day.id} day={day} imageUrl={gallery.find((image) => image.storage_path === day.image_path)?.publicUrl} index={index} count={days.length} busy={pending} onEdit={() => { setEditing(day.id); setForm(rowForm(day)); setResult(null); }} onDelete={() => setDeleting(day)} onPrevious={() => run(() => moveItineraryDayAction(tourId, day.id, "previous"))} onNext={() => run(() => moveItineraryDayAction(tourId, day.id, "next"))} />)}</div>
     <ConfirmDeleteDialog open={Boolean(deleting)} title="Program günü silinsin mi?" description={deleting ? `${deleting.day_number}. Gün — ${deleting.route || deleting.title}` : ""} busy={pending} onCancel={() => setDeleting(null)} onConfirm={() => deleting && run(async () => { const next = await deleteItineraryDayAction(tourId, deleting.id); if (next.success) setDeleting(null); return next; })} />
-    <DayTransfersEditor dayNumbers={days.map((day) => day.day_number)} />
+    <DayTransfersEditor tourId={tourId} dayNumbers={days.map((day) => day.day_number)} initialTransfers={transfers} />
   </div>;
 }
 

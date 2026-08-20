@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.dev.vars.example
+.dev.vars
+.open-next/
+.wrangler/
+*.secret.sql
 !.env.example
 
 # vercel
