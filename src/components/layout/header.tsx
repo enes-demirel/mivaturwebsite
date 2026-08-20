@@ -25,7 +25,7 @@ export function Header() {
             ))}
           </ul>
         </nav>
-        <a href={`tel:${siteConfig.phone}`} aria-label={`Mivatur'u ara: ${siteConfig.phoneDisplay}`} className="hidden h-11 shrink-0 items-center gap-2.5 justify-self-end rounded-md bg-brand px-4 text-[13px] font-extrabold whitespace-nowrap text-white transition-colors hover:bg-[var(--color-brand-hover)] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand xl:inline-flex min-[1400px]:text-sm"><PhoneIcon /><span>{siteConfig.phoneDisplay}</span></a>
+        <a href={`tel:${siteConfig.phone}`} aria-label={`Mivatur'u ara: ${siteConfig.phoneDisplay}`} className="hidden h-11 shrink-0 items-center gap-2.5 justify-self-end rounded-md bg-brand px-4 text-[13px] font-extrabold whitespace-nowrap text-white transition-colors hover:bg-[var(--color-brand-hover)] hover:text-white focus-visible:text-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand xl:inline-flex min-[1400px]:text-sm"><PhoneIcon /><span className="text-white">{siteConfig.phoneDisplay}</span></a>
         <MobileMenu items={navigationItems} />
       </Container>
     </header>

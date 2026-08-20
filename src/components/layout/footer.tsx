@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/layout/logo";
 import { siteConfig } from "@/data/site-config";
+import { legalConfig } from "@/data/legal-config";
 
 const quickLinks = [
   { label: "Yurtdışı Turlar", href: "/yurtdisi-turlari" },
@@ -37,7 +38,7 @@ export function Footer() {
         </FooterGroup>
 
         <FooterGroup title="İletişim">
-          <li className="text-sm leading-6 text-muted">Akabe Mah., Yeniceler Cad., MyOffice Plaza A3/302, Karatay / Konya</li>
+          <li className="text-sm leading-6 text-muted">{legalConfig.address}</li>
           <li>
             <a className="text-sm text-muted transition-colors hover:text-brand" href={`tel:${siteConfig.phone}`}>
               {siteConfig.phoneDisplay}

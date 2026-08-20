@@ -6,6 +6,6 @@ export const navigationItems = [
   { label: "Özel Tur Talebi", href: "/ozel-tur-talebi" },
   { label: "Blog", href: "/blog" },
   { label: "Hakkımızda", href: "/hakkimizda" },
-  { label: "SSS", href: "/sikca-sorulan-sorular" },
   { label: "İletişim", href: "/iletisim" },
+  { label: "SSS", href: "/sikca-sorulan-sorular" },
 ] as const satisfies readonly NavigationItem[];
