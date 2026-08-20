@@ -8,19 +8,18 @@
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "cf:typegen": "CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV=false wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "cf:migrate:local": "wrangler d1 migrations apply mivatur-db --local",
     "cf:migrate:remote": "wrangler d1 migrations apply mivatur-db --remote",
+    "cf:seed:local": "wrangler d1 execute mivatur-db --local --file=cloudflare/seeds/real-content.sql",
+    "cf:seed:remote": "wrangler d1 execute mivatur-db --remote --file=cloudflare/seeds/real-content.sql",
     "cf:create-admin": "node scripts/create-cloudflare-admin.mjs",
     "start": "next start",
-    "lint": "eslint",
-    "supabase:types": "supabase gen types typescript --linked --schema public > src/types/database.types.ts"
+    "lint": "eslint"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",
     "@opennextjs/cloudflare": "^1.20.2",
-    "@supabase/ssr": "^0.12.4",
-    "@supabase/supabase-js": "^2.111.0",
     "country-flag-icons": "^1.6.20",
     "d3-geo": "^3.1.1",
     "next": "^16.2.12",
@@ -40,7 +39,6 @@
     "@types/topojson-specification": "^1.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
-    "supabase": "^2.111.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.124.0"

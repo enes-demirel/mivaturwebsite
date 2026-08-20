@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 import { TourListingPage } from "@/components/tours/tour-listing-page";
-import { demoTours } from "@/data/demo-tours";
+import { getPublishedTours } from "@/lib/db/repositories/public-tours";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Tüm Turlar",
@@ -9,12 +10,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/turlar" },
 };
 
-export default function ToursPage() {
+export default async function ToursPage() {
   return (
     <TourListingPage
       title="Tüm Turlar"
       description="Özenle hazırlanan yurt içi ve yurt dışı tur programlarımızı inceleyin."
-      tours={demoTours}
+      tours={await getPublishedTours()}
     />
   );
 }

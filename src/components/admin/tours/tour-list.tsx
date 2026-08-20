@@ -1,9 +1,6 @@
 import Link from "next/link";
 
-import type { Database } from "@/types/database.types";
-
-type TourRow = Database["public"]["Tables"]["tours"]["Row"];
-type DepartureRow = Database["public"]["Tables"]["tour_departures"]["Row"];
+import type { DepartureAdminRow as DepartureRow,TourAdminRow as TourRow } from "@/types/admin-db";
 export type AdminTourListItem = Pick<TourRow, "id" | "title" | "slug" | "type" | "status" | "duration_days" | "duration_nights" | "updated_at"> & { tour_departures: readonly Pick<DepartureRow, "start_date" | "price" | "currency" | "status">[] };
 
 const dateFormatter = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", year: "numeric" });

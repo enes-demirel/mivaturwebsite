@@ -201,6 +201,15 @@ export const mapDestinations = [
     mobileVisible: true,
     tooltipAlign: "right",
   },
+  { name:"Güney Kore",slug:"guney-kore",countryCode:"KR",numericCountryId:"410",coordinates:[127.77,35.91],order:19,featured:true,mobileVisible:true,tooltipAlign:"right" },
+  { name:"Katar",slug:"katar",countryCode:"QA",numericCountryId:"634",coordinates:[51.18,25.35],order:20,featured:false,mobileVisible:false },
+  { name:"Fas",slug:"fas",countryCode:"MA",numericCountryId:"504",coordinates:[-7.09,31.79],order:21,featured:false,mobileVisible:false },
+  { name:"Ürdün",slug:"urdun",countryCode:"JO",numericCountryId:"400",coordinates:[36.24,30.59],order:22,featured:false,mobileVisible:false },
+  { name:"Tayland",slug:"tayland",countryCode:"TH",numericCountryId:"764",coordinates:[100.99,15.87],order:23,featured:false,mobileVisible:false },
+  { name:"Çin",slug:"cin",countryCode:"CN",numericCountryId:"156",coordinates:[104.2,35.86],order:24,featured:false,mobileVisible:false },
+  { name:"Endonezya",slug:"endonezya",countryCode:"ID",numericCountryId:"360",coordinates:[113.92,-0.79],order:25,featured:false,mobileVisible:false,tooltipAlign:"right" },
+  { name:"Rusya",slug:"rusya",countryCode:"RU",numericCountryId:"643",coordinates:[37.62,55.75],anchorCoordinates:[37.62,55.75],order:26,featured:true,mobileVisible:true,markerOffset:[10,-4] },
+  { name:"Birleşik Krallık",slug:"birlesik-krallik",countryCode:"GB",numericCountryId:"826",coordinates:[-3.44,55.38],order:27,featured:false,mobileVisible:false },
 ] as const satisfies readonly Destination[];
 
 export function getDestinationBySlug(slug: string) {

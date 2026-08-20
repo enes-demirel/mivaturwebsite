@@ -1,15 +1,52 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { DeleteTourButton } from "@/components/admin/tours/delete-tour-button";
+
 import { TourContentManager } from "@/components/admin/tours/content/tour-content-manager";
+import { DeleteTourButton } from "@/components/admin/tours/delete-tour-button";
 import { TourGalleryManager } from "@/components/admin/tours/media/tour-gallery-manager";
 import { TourPdfManager } from "@/components/admin/tours/media/tour-pdf-manager";
 import { TourForm } from "@/components/admin/tours/tour-form";
 import { StatusBadge } from "@/components/admin/tours/tour-list";
 import { TourStatusActions } from "@/components/admin/tours/tour-status-actions";
 import { getTourContent } from "@/lib/db/repositories/tour-content";
-import { findTour,listDepartures,listInstallments } from "@/lib/db/repositories/tours";
+import { findTour, listDepartures, listInstallments } from "@/lib/db/repositories/tours";
 import { mediaUrl } from "@/lib/storage/r2";
-type Props={params:Promise<{id:string}>;searchParams:Promise<{created?:string;updated?:string;error?:string}>};
-export default async function EditTourPage({params,searchParams}:Props){const{id}=await params;if(!z.uuid().safeParse(id).success)notFound();const[tour,departures,installments,content]=await Promise.all([findTour(id),listDepartures(id),listInstallments(id),getTourContent(id)]);if(!tour)notFound();const query=await searchParams;const message=query.created==="1"?"Tur başarıyla oluşturuldu.":query.updated==="1"?"Değişiklikler kaydedildi.":query.error==="yayin-eksik"?"Yayınlamak için temel bilgiler ve en az bir kalkış tarihi gereklidir.":query.error?"İşlem tamamlanamadı.":null;const gallery=content.gallery.map(image=>({...image,publicUrl:mediaUrl(image.storage_path)}));return <div className="mx-auto max-w-6xl"><Link href="/admin/turlar" className="text-sm font-bold text-brand hover:underline">← Tur listesine dön</Link><div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"><header><div className="flex items-center gap-3"><p className="text-xs font-extrabold tracking-[0.16em] text-brand uppercase">Tur Düzenle</p><StatusBadge status={tour.status}/></div><h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{tour.title}</h1></header><div className="flex flex-wrap items-center gap-2"><TourStatusActions id={tour.id} status={tour.status}/>{tour.status==="draft"&&<DeleteTourButton id={tour.id} title={tour.title}/>}</div></div>{message&&<div className={`mt-6 rounded-md border px-4 py-3 text-sm font-semibold ${query.error?"border-brand/20 bg-brand/5 text-brand":"border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{message}</div>}<div className="mt-8"><TourForm tour={tour} initialDepartures={departures} initialInstallments={installments}/></div><div className="mt-8 space-y-6"><TourGalleryManager tourId={tour.id} images={gallery}/><TourPdfManager tourId={tour.id} pdfUrl={tour.pdf_path?mediaUrl(tour.pdf_path):null}/></div><TourContentManager tourId={tour.id} itinerary={content.itinerary} hotels={content.hotels} services={content.services} notes={content.notes} faqs={content.faqs} gallery={gallery}/></div>}
+
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function EditTourPage({ params, searchParams }: Props) {
+  const { id } = await params;
+  if (!z.uuid().safeParse(id).success) notFound();
+  const [tour, departures, installments, content] = await Promise.all([
+    findTour(id), listDepartures(id), listInstallments(id), getTourContent(id),
+  ]);
+  if (!tour) notFound();
+
+  const query = await searchParams;
+  const message = query.created === "1" ? "Tur başarıyla oluşturuldu."
+    : query.updated === "1" ? "Değişiklikler kaydedildi."
+      : query.error === "yayin-eksik" ? "Yayınlamak için temel bilgiler ve en az bir kalkış tarihi gereklidir."
+        : query.error ? "İşlem tamamlanamadı." : null;
+  const gallery = content.gallery.map((image) => ({ ...image, publicUrl: mediaUrl(image.storage_path) }));
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <Link href="/admin/turlar" className="text-sm font-bold text-brand hover:underline">← Tur listesine dön</Link>
+      <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <header>
+          <div className="flex items-center gap-3"><p className="text-xs font-extrabold tracking-[0.16em] text-brand uppercase">Tur Düzenle</p><StatusBadge status={tour.status} /></div>
+          <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">{tour.title}</h1>
+        </header>
+        <div className="flex flex-wrap items-center gap-2"><TourStatusActions id={tour.id} status={tour.status} />{tour.status === "draft" && <DeleteTourButton id={tour.id} title={tour.title} />}</div>
+      </div>
+      {message && <div className={`mt-6 rounded-md border px-4 py-3 text-sm font-semibold ${query.error ? "border-brand/20 bg-brand/5 text-brand" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`}>{message}</div>}
+      <div className="mt-8"><TourForm tour={tour} initialDepartures={departures} initialInstallments={installments} /></div>
+      <div className="mt-8 space-y-6"><TourGalleryManager tourId={tour.id} images={gallery} /><TourPdfManager tourId={tour.id} pdfUrl={tour.pdf_path ? mediaUrl(tour.pdf_path) : null} /></div>
+      <TourContentManager tourId={tour.id} itinerary={content.itinerary} hotels={content.hotels} services={content.services} notes={content.notes} faqs={content.faqs} gallery={gallery} transfers={content.transfers} />
+    </div>
+  );
+}

@@ -9,10 +9,10 @@ import { MobileMenu } from "@/components/layout/mobile-menu";
 export function Header() {
   return (
     <header className="sticky top-0 z-40 h-(--header-height) border-b border-border/80 bg-surface/95 backdrop-blur-md">
-      <Container className="flex h-full max-w-[1320px] items-center justify-between gap-5 xl:grid xl:grid-cols-[156px_minmax(0,1fr)_auto] xl:px-6">
+      <Container className="flex h-full max-w-[1400px] items-center justify-between gap-5 xl:grid xl:grid-cols-[156px_minmax(0,1fr)_auto] xl:px-6">
         <Logo priority className="shrink-0" />
-        <nav aria-label="Ana navigasyon" className="hidden min-w-0 justify-self-center xl:block">
-          <ul className="flex items-center gap-3.5 min-[1400px]:gap-5">
+        <nav aria-label="Ana navigasyon" className="hidden min-w-0 justify-self-end xl:block">
+          <ul className="flex items-center gap-3 min-[1400px]:gap-4 min-[1600px]:gap-5">
             {navigationItems.map((item) => (
               <li key={item.href}>
                 <Link

@@ -5,8 +5,7 @@ import { useState, useTransition } from "react";
 import { createFaqAction, deleteFaqAction, moveFaqAction, toggleFaqPublishedAction, updateFaqAction, type ContentActionResult } from "@/app/admin/(protected)/turlar/content-actions";
 import { ActionMessage, inputClass, MoveButtons, textareaClass } from "@/components/admin/tours/content/content-controls";
 import { ConfirmDeleteDialog } from "@/components/admin/tours/content/confirm-delete-dialog";
-import type { Database } from "@/types/database.types";
-type Row = Database["public"]["Tables"]["tour_faqs"]["Row"];
+import type { FaqAdminRow as Row } from "@/types/admin-db";
 type Form = { question: string; answer: string; published: boolean }; const empty = (): Form => ({ question: "", answer: "", published: true });
 
 export function TourFaqsManager({ tourId, faqs }: { tourId: string; faqs: readonly Row[] }) {

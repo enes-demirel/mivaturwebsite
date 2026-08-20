@@ -19,9 +19,7 @@ import {
   MAX_IMAGE_UPLOAD_COUNT,
   validateImageFile,
 } from "@/lib/storage/file-validation";
-import type { Database } from "@/types/database.types";
-
-type GalleryRow = Database["public"]["Tables"]["tour_gallery"]["Row"];
+import type { GalleryAdminRow as GalleryRow } from "@/types/admin-db";
 export type GalleryItemView = GalleryRow & { publicUrl: string };
 type PendingImage = { id: string; file: File; altText: string; error: string | null; status: "ready" | "uploading" | "success" | "error" };
 

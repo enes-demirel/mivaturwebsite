@@ -7,10 +7,7 @@ import { createTourAction, type TourFormState, updateTourAction } from "@/app/ad
 import { DepartureFields, emptyDeparture, type DepartureDraft } from "@/components/admin/tours/departure-fields";
 import { InstallmentPlanEditor } from "@/components/admin/tours/installment-plan-editor";
 import { createTurkishSlug } from "@/lib/turkish-slug";
-import type { Database } from "@/types/database.types";
-
-type TourRow = Database["public"]["Tables"]["tours"]["Row"];
-type DepartureRow = Database["public"]["Tables"]["tour_departures"]["Row"];
+import type { DepartureAdminRow as DepartureRow,TourAdminRow as TourRow } from "@/types/admin-db";
 const initialTourFormState: TourFormState = { message: null, fieldErrors: {} };
 
 export function TourForm({ tour, initialDepartures = [], initialInstallments = [] }: { tour?: TourRow; initialDepartures?: readonly DepartureRow[]; initialInstallments?: readonly { installment_number: number; due_date: string }[] }) {

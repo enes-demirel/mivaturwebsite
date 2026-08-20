@@ -5,9 +5,12 @@ import { HomeFaqSection } from "@/components/home/home-faq-section";
 import { LatestBlogSection } from "@/components/home/latest-blog-section";
 import { WhyMivaturSection } from "@/components/home/why-mivatur-section";
 import { WorldMapHero } from "@/components/home/world-map-hero";
-import { getToursByType } from "@/data/demo-tours";
+import { getFeaturedTours } from "@/lib/db/repositories/public-tours";
 
-export default function HomePage() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const featured = await getFeaturedTours();
   return (
     <div>
       <WorldMapHero />
@@ -15,7 +18,7 @@ export default function HomePage() {
         eyebrow="Yurtdışını Keşfet"
         title="Öne Çıkan Yurtdışı Turları"
         description="Yeni kültürleri ve unutulmaz rotaları Mivatur'un özenle hazırlanan programlarıyla keşfedin."
-        tours={getToursByType("international")}
+        tours={featured.international}
         viewAllHref="/yurtdisi-turlari"
         viewAllLabel="Tüm Yurtdışı Turlarını Gör"
         gridVariant="four-column"
@@ -25,7 +28,7 @@ export default function HomePage() {
         eyebrow="Türkiye'yi Keşfet"
         title="Öne Çıkan Yurtiçi Turları"
         description="Türkiye'nin doğasını, tarihini ve benzersiz şehirlerini keşfedeceğiniz rotalar."
-        tours={getToursByType("domestic")}
+        tours={featured.domestic}
         viewAllHref="/yurtici-turlari"
         viewAllLabel="Tüm Yurtiçi Turlarını Gör"
         gridVariant="two-column"

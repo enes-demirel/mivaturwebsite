@@ -5,8 +5,7 @@ import { useState, useTransition } from "react";
 import { createImportantNoteAction, deleteImportantNoteAction, moveImportantNoteAction, updateImportantNoteAction, type ContentActionResult } from "@/app/admin/(protected)/turlar/content-actions";
 import { ActionMessage, inputClass, MoveButtons, textareaClass } from "@/components/admin/tours/content/content-controls";
 import { ConfirmDeleteDialog } from "@/components/admin/tours/content/confirm-delete-dialog";
-import type { Database } from "@/types/database.types";
-type Row = Database["public"]["Tables"]["tour_important_notes"]["Row"];
+import type { NoteAdminRow as Row } from "@/types/admin-db";
 type Form = { title: string; content: string }; const empty = (): Form => ({ title: "", content: "" });
 
 export function ImportantNotesManager({ tourId, notes }: { tourId: string; notes: readonly Row[] }) {

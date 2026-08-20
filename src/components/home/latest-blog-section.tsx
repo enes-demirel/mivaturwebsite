@@ -3,9 +3,11 @@ import Link from "next/link";
 import { BlogCard } from "@/components/blog/blog-card";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/ui/section";
-import { publishedBlogPosts } from "@/data/demo-blog-posts";
+import { getPublishedBlogPosts } from "@/lib/db/repositories/public-content";
 
-export function LatestBlogSection() {
+export async function LatestBlogSection() {
+  const publishedBlogPosts = await getPublishedBlogPosts();
+  if (publishedBlogPosts.length === 0) return null;
   return (
     <Section
       aria-labelledby="latest-blog-title"

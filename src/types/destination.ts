@@ -4,8 +4,17 @@ export type DestinationCountryCode =
   | "AT"
   | "BA"
   | "CZ"
+  | "CN"
   | "DE"
   | "EG"
+  | "GB"
+  | "ID"
+  | "JO"
+  | "KR"
+  | "MA"
+  | "QA"
+  | "RU"
+  | "TH"
   | "ES"
   | "FR"
   | "GR"
@@ -30,4 +39,5 @@ export type Destination = {
   markerOffset?: readonly [x: number, y: number];
   mobileMarkerOffset?: readonly [x: number, y: number];
   tooltipAlign?: "left" | "center" | "right";
+  anchorCoordinates?: readonly [longitude: number, latitude: number];
 };

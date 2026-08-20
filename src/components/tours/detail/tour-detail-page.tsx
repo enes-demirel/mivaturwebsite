@@ -31,8 +31,8 @@ export function TourDetailPage({ tour, detail, similarTours }: { tour: Tour; det
             <p className="text-sm font-extrabold tracking-[0.12em] text-brand uppercase">{tour.region}</p>
             <h1 className="mt-3 max-w-4xl text-4xl leading-tight font-extrabold tracking-tight text-text sm:text-5xl lg:text-[3.5rem]">{tour.title}</h1>
             <p className="mt-4 max-w-3xl text-base leading-7 text-muted sm:text-lg">{detail.shortDescription}</p>
-            <dl className="my-6 flex flex-wrap gap-x-6 gap-y-3 border-y border-border py-4 text-sm"><QuickFact label="Süre" value={`${tour.durationDays} gün ${tour.durationNights} gece`} /><QuickFact label="Ulaşım" value={transportationLabels[tour.transportationType]} /><QuickFact label="Vize" value={visaLabels[tour.visaStatus]} /><QuickFact label="Şehir" value={`${detail.visitedCities.length} şehir`} /></dl>
-            <TourGallery images={detail.gallery} />
+            <dl className="my-6 flex flex-wrap gap-x-6 gap-y-3 border-y border-border py-4 text-sm"><QuickFact label="Süre" value={`${tour.durationDays} gün ${tour.durationNights} gece`} /><QuickFact label="Ulaşım" value={transportationLabels[tour.transportationType]} /><QuickFact label="Vize" value={visaLabels[tour.visaStatus]} /><QuickFact label="Şehir" value={`${detail.visitedCities.length || detail.hotelInformation?.length || 0} şehir`} /></dl>
+            <TourGallery images={detail.gallery.length ? detail.gallery : [{ src: tour.image, alt: tour.imageAlt }]} />
           </div>
           <div id="booking-panel" className="max-h-[calc(100svh-var(--header-height)-3rem)] min-w-0 scroll-mt-[calc(var(--header-height)+1.5rem)] overflow-y-auto lg:sticky lg:top-[calc(var(--header-height)+1.5rem)]"><TourBookingPanel tour={tour} departures={detail.departures} whatsappNumber={siteConfig.whatsappNumber} /></div>
         </div>

@@ -3,9 +3,9 @@ import type { NavigationItem } from "@/types/navigation";
 export const navigationItems = [
   { label: "Yurtdışı Turlar", href: "/yurtdisi-turlari" },
   { label: "Yurtiçi Turlar", href: "/yurtici-turlari" },
-  { label: "Tüm Turlar", href: "/turlar" },
   { label: "Özel Tur Talebi", href: "/ozel-tur-talebi" },
   { label: "Blog", href: "/blog" },
   { label: "Hakkımızda", href: "/hakkimizda" },
+  { label: "SSS", href: "/sikca-sorulan-sorular" },
   { label: "İletişim", href: "/iletisim" },
 ] as const satisfies readonly NavigationItem[];

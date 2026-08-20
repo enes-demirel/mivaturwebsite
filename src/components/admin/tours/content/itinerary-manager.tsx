@@ -9,10 +9,9 @@ import { ActionMessage, inputClass, MoveButtons, textareaClass } from "@/compone
 import { ConfirmDeleteDialog } from "@/components/admin/tours/content/confirm-delete-dialog";
 import { DayTransfersEditor } from "@/components/admin/tours/content/day-transfers-editor";
 import type { GalleryItemView } from "@/components/admin/tours/media/tour-gallery-manager";
-import type { Database } from "@/types/database.types";
+import type { ItineraryAdminRow as ItineraryRow } from "@/types/admin-db";
 import type { TransferRow } from "@/lib/db/repositories/tour-content";
 
-type ItineraryRow = Database["public"]["Tables"]["tour_itinerary_days"]["Row"];
 type FormValue = { title: string; route: string; summary: string; description: string; image_path: string; image_alt: string; highlights: string[]; transportation: string; accommodation: string; meals: string };
 const emptyForm = (): FormValue => ({ title: "", route: "", summary: "", description: "", image_path: "", image_alt: "", highlights: [], transportation: "", accommodation: "", meals: "" });
 

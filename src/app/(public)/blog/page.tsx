@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 
 import { BlogCard } from "@/components/blog/blog-card";
 import { Container } from "@/components/ui/container";
-import { publishedBlogPosts } from "@/data/demo-blog-posts";
+import { getPublishedBlogPosts } from "@/lib/db/repositories/public-content";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Gezi Rehberi",
@@ -10,7 +11,8 @@ export const metadata: Metadata = {
     "Mivatur gezi rehberindeki destinasyon önerilerini ve seyahat ipuçlarını keşfedin.",
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const publishedBlogPosts=await getPublishedBlogPosts();
   return (
     <Container className="py-14 sm:py-16 lg:py-20">
       <header className="max-w-3xl">
@@ -31,6 +33,7 @@ export default function BlogPage() {
           <BlogCard key={post.id} post={post} headingLevel="h2" />
         ))}
       </div>
+      {publishedBlogPosts.length===0&&<p className="mt-10 rounded-lg border border-border bg-surface p-8 text-center text-muted">Henüz yayınlanmış blog yazısı bulunmuyor.</p>}
     </Container>
   );
 }

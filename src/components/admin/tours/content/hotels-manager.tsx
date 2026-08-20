@@ -5,9 +5,7 @@ import { useState, useTransition } from "react";
 import { createHotelAction, deleteHotelAction, moveHotelAction, updateHotelAction, type ContentActionResult } from "@/app/admin/(protected)/turlar/content-actions";
 import { ActionMessage, inputClass, MoveButtons } from "@/components/admin/tours/content/content-controls";
 import { ConfirmDeleteDialog } from "@/components/admin/tours/content/confirm-delete-dialog";
-import type { Database } from "@/types/database.types";
-
-type Row = Database["public"]["Tables"]["tour_hotels"]["Row"];
+import type { HotelAdminRow as Row } from "@/types/admin-db";
 type FormValue = { city: string; hotel_name: string; night_count: string; stars: string };
 const empty = (): FormValue => ({ city: "", hotel_name: "", night_count: "1", stars: "" });
 

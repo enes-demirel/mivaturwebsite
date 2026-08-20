@@ -1,8 +1,6 @@
 "use client";
 
-import type { Database } from "@/types/database.types";
-
-type DepartureRow = Database["public"]["Tables"]["tour_departures"]["Row"];
+import type { DepartureAdminRow as DepartureRow } from "@/types/admin-db";
 export type DepartureDraft = Pick<DepartureRow, "id" | "start_date" | "end_date" | "departure_city" | "arrival_point" | "price" | "currency" | "previous_price" | "airline" | "transportation_note" | "status"> & { clientKey: string };
 
 export function emptyDeparture(clientKey: string): DepartureDraft {

@@ -5,6 +5,7 @@ import {
   AT,
   BA,
   CZ,
+  CN,
   DE,
   EG,
   ES,
@@ -14,10 +15,18 @@ import {
   HU,
   IT,
   JP,
+  GB,
+  ID,
+  JO,
+  KR,
+  MA,
   ME,
   MK,
   NL,
   RS,
+  QA,
+  RU,
+  TH,
 } from "country-flag-icons/react/3x2";
 import type { CSSProperties } from "react";
 
@@ -30,6 +39,7 @@ const flags: Record<DestinationCountryCode, typeof AE> = {
   AT,
   BA,
   CZ,
+  CN,
   DE,
   EG,
   ES,
@@ -39,10 +49,18 @@ const flags: Record<DestinationCountryCode, typeof AE> = {
   HU,
   IT,
   JP,
+  GB,
+  ID,
+  JO,
+  KR,
+  MA,
   ME,
   MK,
   NL,
   RS,
+  QA,
+  RU,
+  TH,
 };
 
 type DestinationMarkerProps = {

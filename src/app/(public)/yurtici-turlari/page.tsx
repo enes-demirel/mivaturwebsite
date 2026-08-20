@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 import { TourListingPage } from "@/components/tours/tour-listing-page";
-import { getToursByType } from "@/data/demo-tours";
+import { getPublishedDomesticTours } from "@/lib/db/repositories/public-tours";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Yurtiçi Turlar",
@@ -9,12 +10,12 @@ export const metadata: Metadata = {
   alternates: { canonical: "/yurtici-turlari" },
 };
 
-export default function DomesticToursPage() {
+export default async function DomesticToursPage() {
   return (
     <TourListingPage
       title="Yurtiçi Turlar"
       description="Türkiye'nin eşsiz doğasını ve kültürel mirasını keşfedeceğiniz turları inceleyin."
-      tours={getToursByType("domestic")}
+      tours={await getPublishedDomesticTours()}
       showTypeFilter={false}
     />
   );

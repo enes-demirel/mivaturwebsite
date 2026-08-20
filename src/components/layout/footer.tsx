@@ -11,9 +11,8 @@ const quickLinks = [
 ] as const;
 
 const legalLinks = [
-  { label: "Gizlilik Politikası", href: "/gizlilik-politikasi" },
+  { label: "KVKK Aydınlatma Metni", href: "/kvkk-aydinlatma-metni" },
   { label: "Çerez Politikası", href: "/cerez-politikasi" },
-  { label: "Kullanım Koşulları", href: "/kullanim-kosullari" },
 ] as const;
 
 export function Footer() {
@@ -35,10 +34,10 @@ export function Footer() {
         </FooterGroup>
 
         <FooterGroup title="İletişim">
-          <li className="text-sm text-muted">Adres bilgisi yakında</li>
+          <li className="text-sm leading-6 text-muted">Akabe Mah., Yeniceler Cad., MyOffice Plaza A3/302, Karatay / Konya</li>
           <li>
-            <a className="text-sm text-muted transition-colors hover:text-brand" href="tel:+900000000000">
-              +90 (000) 000 00 00
+            <a className="text-sm text-muted transition-colors hover:text-brand" href="tel:+905051289581">
+              +90 505 128 95 81
             </a>
           </li>
           <li>

@@ -5,9 +5,7 @@ import { useState, useTransition } from "react";
 import { createServiceAction, deleteServiceAction, moveServiceAction, updateServiceAction, type ContentActionResult } from "@/app/admin/(protected)/turlar/content-actions";
 import { ActionMessage, MoveButtons, textareaClass } from "@/components/admin/tours/content/content-controls";
 import { ConfirmDeleteDialog } from "@/components/admin/tours/content/confirm-delete-dialog";
-import type { Database } from "@/types/database.types";
-
-type Row = Database["public"]["Tables"]["tour_service_items"]["Row"];
+import type { ServiceAdminRow as Row } from "@/types/admin-db";
 type ServiceType = "included" | "excluded";
 
 export function ServicesManager({ tourId, services }: { tourId: string; services: readonly Row[] }) {

@@ -26,9 +26,7 @@ type TourCardProps = {
 };
 
 export function TourCard({ tour }: TourCardProps) {
-  const formattedDate = dateFormatter.format(
-    new Date(`${tour.nearestDepartureDate}T00:00:00Z`),
-  );
+  const formattedDate = tour.nearestDepartureDate ? dateFormatter.format(new Date(`${tour.nearestDepartureDate}T00:00:00Z`)) : null;
   const formattedPrice = `${numberFormatter.format(tour.price)} ${currencySymbols[tour.currency]}`;
 
   return (
@@ -69,10 +67,10 @@ export function TourCard({ tour }: TourCardProps) {
               {tour.durationDays} Gün <span aria-hidden="true">•</span>{" "}
               {tour.durationNights} Gece
             </p>
-            <p className="mt-3 text-sm leading-6 text-muted">
+            {formattedDate ? <p className="mt-3 text-sm leading-6 text-muted">
               En yakın tarih:{" "}
               <time dateTime={tour.nearestDepartureDate}>{formattedDate}</time>
-            </p>
+            </p> : <p className="mt-3 text-sm leading-6 text-muted">Yeni dönem tarihleri için bizimle iletişime geçin.</p>}
             {tour.departureCount > 1 && (
               <p className="mt-1 text-sm text-muted">
                 {tour.departureCount} farklı kalkış tarihi
@@ -80,7 +78,7 @@ export function TourCard({ tour }: TourCardProps) {
             )}
 
             <div className="mt-auto flex items-end justify-between gap-3 border-t border-border pt-6 sm:gap-4">
-              <p className="min-w-max shrink-0">
+              {tour.price > 0 ? <p className="min-w-max shrink-0">
                 <span className="block whitespace-nowrap text-[0.6875rem] text-muted sm:text-xs">
                   {tour.pricePrefix}
                 </span>
@@ -90,7 +88,7 @@ export function TourCard({ tour }: TourCardProps) {
                 >
                   {formattedPrice}
                 </span>
-              </p>
+              </p> : <p className="text-sm font-semibold text-muted">Fiyat bilgisi yakında</p>}
               <span className="shrink-0 whitespace-nowrap text-[0.8125rem] font-bold text-brand sm:text-sm">
                 Turu İncele <span aria-hidden="true">→</span>
               </span>

@@ -5,14 +5,9 @@ import { ItineraryManager } from "@/components/admin/tours/content/itinerary-man
 import { ServicesManager } from "@/components/admin/tours/content/services-manager";
 import { TourFaqsManager } from "@/components/admin/tours/content/tour-faqs-manager";
 import type { GalleryItemView } from "@/components/admin/tours/media/tour-gallery-manager";
-import type { Database } from "@/types/database.types";
+import type { FaqAdminRow as Faq,HotelAdminRow as Hotel,ItineraryAdminRow as Itinerary,NoteAdminRow as Note,ServiceAdminRow as Service } from "@/types/admin-db";
 import type { TransferRow } from "@/lib/db/repositories/tour-content";
 
-type Itinerary = Database["public"]["Tables"]["tour_itinerary_days"]["Row"];
-type Hotel = Database["public"]["Tables"]["tour_hotels"]["Row"];
-type Service = Database["public"]["Tables"]["tour_service_items"]["Row"];
-type Note = Database["public"]["Tables"]["tour_important_notes"]["Row"];
-type Faq = Database["public"]["Tables"]["tour_faqs"]["Row"];
 
 export function TourContentManager({ tourId, itinerary, hotels, services, notes, faqs, gallery, transfers = [] }: { tourId: string; itinerary: readonly Itinerary[]; hotels: readonly Hotel[]; services: readonly Service[]; notes: readonly Note[]; faqs: readonly Faq[]; gallery: readonly GalleryItemView[]; transfers?: readonly TransferRow[] }) {
   const included = services.filter(({ type }) => type === "included").length;
