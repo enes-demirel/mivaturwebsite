@@ -10,7 +10,10 @@ function tour(row: TourDbRow): TourRow { return { ...row, featured_home: dbBoole
 
 export async function listAdminTours() {
   const rows = await all<TourDbRow>("SELECT * FROM tours ORDER BY CASE status WHEN 'published' THEN 0 WHEN 'draft' THEN 1 ELSE 2 END, updated_at DESC");
-  return Promise.all(rows.map(async (row) => ({ ...tour(row), tour_departures: await all<DepartureRow>("SELECT * FROM tour_departures WHERE tour_id = ? ORDER BY start_date", [row.id]) })));
+  const departures = rows.length ? await all<DepartureRow>("SELECT * FROM tour_departures ORDER BY start_date") : [];
+  const byTour = new Map<string, DepartureRow[]>();
+  for (const departure of departures) byTour.set(departure.tour_id, [...(byTour.get(departure.tour_id) ?? []), departure]);
+  return rows.map((row) => ({ ...tour(row), tour_departures: byTour.get(row.id) ?? [] }));
 }
 export async function findTour(id:string) { const row=await first<TourDbRow>("SELECT * FROM tours WHERE id = ?",[id]); return row ? tour(row) : null; }
 export async function listDepartures(id:string) { return all<DepartureRow>("SELECT * FROM tour_departures WHERE tour_id = ? ORDER BY start_date",[id]); }

@@ -6,9 +6,9 @@ import { createWhatsAppUrl, formatTourPrice } from "@/lib/tour-detail-utils";
 import type { Tour } from "@/types/tour";
 import type { TourDeparture } from "@/types/tour-detail";
 
-export function TourBookingPanel({ tour, departures, whatsappNumber }: { tour: Tour; departures: readonly TourDeparture[]; whatsappNumber: string | null }) {
+export function TourBookingPanel({ tour, departures, whatsappUrl: whatsappBaseUrl }: { tour: Tour; departures: readonly TourDeparture[]; whatsappUrl: string }) {
   const { selectedDeparture } = useTourDeparture();
-  const whatsappUrl = createWhatsAppUrl(whatsappNumber, tour.title, selectedDeparture);
+  const whatsappUrl = createWhatsAppUrl(whatsappBaseUrl, tour.title, selectedDeparture);
 
   return (
     <aside className="rounded-lg border border-border bg-surface p-5 shadow-card" aria-label="Tur tarihi ve rezervasyon">
@@ -27,7 +27,7 @@ export function TourBookingPanel({ tour, departures, whatsappNumber }: { tour: T
         {selectedDeparture.singleRoomSupplement && <p className="mt-3 text-sm font-semibold text-text">Tek kişilik oda farkı: <span className="whitespace-nowrap tabular-nums">{formatTourPrice(selectedDeparture.singleRoomSupplement, selectedDeparture.currency)}</span></p>}
       </div>
       {whatsappUrl ? (
-        <a href={whatsappUrl} target="_blank" rel="noreferrer" className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-brand bg-brand px-5 text-center text-sm font-bold text-white transition-colors hover:bg-brand-hover focus-visible:ring-3 focus-visible:ring-brand/25">WhatsApp’tan Bilgi Al</a>
+        <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-md border border-brand bg-brand px-5 text-center text-sm font-bold text-white transition-colors hover:bg-brand-hover focus-visible:ring-3 focus-visible:ring-brand/25">WhatsApp’tan Bilgi Al</a>
       ) : (
         <span aria-disabled="true" className="mt-5 inline-flex min-h-12 w-full cursor-not-allowed items-center justify-center rounded-md border border-border bg-border/40 px-5 text-center text-sm font-bold text-muted">WhatsApp’tan Bilgi Al</span>
       )}

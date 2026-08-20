@@ -2,12 +2,15 @@ import Link from "next/link";
 
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/layout/logo";
+import { siteConfig } from "@/data/site-config";
 
 const quickLinks = [
   { label: "Yurtdışı Turlar", href: "/yurtdisi-turlari" },
   { label: "Yurtiçi Turlar", href: "/yurtici-turlari" },
   { label: "Tüm Turlar", href: "/turlar" },
   { label: "Blog", href: "/blog" },
+  { label: "Hakkımızda", href: "/hakkimizda" },
+  { label: "İletişim", href: "/iletisim" },
 ] as const;
 
 const legalLinks = [
@@ -36,8 +39,8 @@ export function Footer() {
         <FooterGroup title="İletişim">
           <li className="text-sm leading-6 text-muted">Akabe Mah., Yeniceler Cad., MyOffice Plaza A3/302, Karatay / Konya</li>
           <li>
-            <a className="text-sm text-muted transition-colors hover:text-brand" href="tel:+905051289581">
-              +90 505 128 95 81
+            <a className="text-sm text-muted transition-colors hover:text-brand" href={`tel:${siteConfig.phone}`}>
+              {siteConfig.phoneDisplay}
             </a>
           </li>
           <li>
@@ -47,10 +50,9 @@ export function Footer() {
           </li>
         </FooterGroup>
 
-        <FooterGroup title="Bizi Takip Edin">
-          <FooterLink label="Instagram" href="#" />
-          <FooterLink label="Facebook" href="#" />
-          <FooterLink label="YouTube" href="#" />
+        <FooterGroup title="Kurumsal">
+          <FooterLink label="Özel Tur Talebi" href="/ozel-tur-talebi" />
+          <FooterLink label="Sıkça Sorulan Sorular" href="/sikca-sorulan-sorular" />
         </FooterGroup>
       </Container>
 

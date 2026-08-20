@@ -8,6 +8,8 @@ import { requireAdmin } from "@/lib/auth/session";
 import { createTour, deleteDraftTour, departureCount, findTour, replaceInstallments, setTourStatus, updateTour, type DepartureRow, type TourRow } from "@/lib/db/repositories/tours";
 import { createTurkishSlug } from "@/lib/turkish-slug";
 import { tourSchema, type ValidatedTour } from "@/lib/validation/tour";
+import { all } from "@/lib/db/query";
+import { removeMedia } from "@/lib/storage/r2";
 type TourInput = Omit<TourRow, "id" | "created_at" | "updated_at" | "cover_image_path" | "pdf_path">;
 type DepartureInput = Omit<DepartureRow, "id" | "tour_id" | "created_at" | "updated_at">;
 
@@ -214,7 +216,12 @@ export async function deleteDraftTourAction(formData: FormData) {
   if (!uuidSchema.safeParse(id).success) redirect("/admin/turlar");
   const tour = await findTour(id);
   if (tour?.status !== "draft") redirect(`/admin/turlar/${id}?error=silme`);
-  try { await deleteDraftTour(id); } catch { redirect(`/admin/turlar/${id}?error=islem`); }
+  try {
+    const files=await all<{storage_path:string}>("SELECT storage_path FROM tour_gallery WHERE tour_id=?",[id]);
+    for(const file of files)await removeMedia(file.storage_path);
+    if(tour.pdf_path)await removeMedia(tour.pdf_path);
+    await deleteDraftTour(id);
+  } catch { redirect(`/admin/turlar/${id}?error=islem`); }
   revalidatePath("/admin/turlar");
   redirect("/admin/turlar");
 }

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { getPublishedSitemapEntries } from "@/lib/db/repositories/public-content";
 
 export const dynamic = "force-dynamic";
-const base = "https://mivatur.com";
+const base = "https://www.mivatur.com";
 
 export default async function sitemap():Promise<MetadataRoute.Sitemap> {
   const data = await getPublishedSitemapEntries();

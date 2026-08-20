@@ -1,3 +1,5 @@
+import { siteConfig } from "@/data/site-config";
+
 export const generalFaqGroups = [
   { title: "Rezervasyon", items: [
     { question: "Tur rezervasyonu nasıl oluşturulur?", answer: "İlgilendiğiniz tur sayfasındaki talep formunu kullanabilir veya Mivatur ile telefon üzerinden iletişime geçebilirsiniz. Kesin rezervasyon, tur koşulları ve uygunluk teyit edildikten sonra tamamlanır." },
@@ -19,7 +21,7 @@ export const generalFaqGroups = [
     { question: "Rezervasyon iptal veya değişiklik koşulları nelerdir?", answer: "Koşullar ilgili tur, ulaşım sağlayıcısı ve rezervasyon tarihine göre değişebilir. Size sunulan sözleşme ve tur özelindeki şartlar esas alınır." },
   ]},
   { title: "İletişim", items: [
-    { question: "Mivatur'a nasıl ulaşabilirim?", answer: "Web sitesindeki talep formlarını kullanabilir veya +90 505 128 95 81 numaralı telefondan ekibimize ulaşabilirsiniz." },
+    { question: "Mivatur'a nasıl ulaşabilirim?", answer: `Web sitesindeki talep formlarını kullanabilir veya ${siteConfig.phoneDisplay} numaralı telefondan ekibimize ulaşabilirsiniz.` },
   ]},
 ] as const;
 

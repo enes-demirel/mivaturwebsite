@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 
 import { useTourDeparture } from "@/components/tours/detail/tour-departure-provider";
@@ -14,9 +14,11 @@ export function ReservationForm({ tourSlug }: { tourSlug: string }) {
   const [status, setStatus] = useState<FormStatus>("idle");
   const [message, setMessage] = useState("");
   const [startedAt] = useState(() => Date.now());
+  const submittingRef = useRef(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submittingRef.current) return;
     const form = event.currentTarget;
 
     if (!form.reportValidity()) {
@@ -24,11 +26,14 @@ export function ReservationForm({ tourSlug }: { tourSlug: string }) {
       return;
     }
 
+    submittingRef.current = true;
     setStatus("loading");
-    const result = await submitReservationAction(new FormData(form));
-    setMessage(result.message);
-    setStatus(result.success ? "success" : "error");
-    if (result.success) form.reset();
+    try {
+      const result = await submitReservationAction(new FormData(form));
+      setMessage(result.message);
+      setStatus(result.success ? "success" : "error");
+      if (result.success) form.reset();
+    } finally { submittingRef.current = false; }
   }
 
   return (

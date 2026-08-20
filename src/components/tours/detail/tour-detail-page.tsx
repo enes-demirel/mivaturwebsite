@@ -34,7 +34,7 @@ export function TourDetailPage({ tour, detail, similarTours }: { tour: Tour; det
             <dl className="my-6 flex flex-wrap gap-x-6 gap-y-3 border-y border-border py-4 text-sm"><QuickFact label="Süre" value={`${tour.durationDays} gün ${tour.durationNights} gece`} /><QuickFact label="Ulaşım" value={transportationLabels[tour.transportationType]} /><QuickFact label="Vize" value={visaLabels[tour.visaStatus]} /><QuickFact label="Şehir" value={`${detail.visitedCities.length || detail.hotelInformation?.length || 0} şehir`} /></dl>
             <TourGallery images={detail.gallery.length ? detail.gallery : [{ src: tour.image, alt: tour.imageAlt }]} />
           </div>
-          <div id="booking-panel" className="max-h-[calc(100svh-var(--header-height)-3rem)] min-w-0 scroll-mt-[calc(var(--header-height)+1.5rem)] overflow-y-auto lg:sticky lg:top-[calc(var(--header-height)+1.5rem)]"><TourBookingPanel tour={tour} departures={detail.departures} whatsappNumber={siteConfig.whatsappNumber} /></div>
+          <div id="booking-panel" className="max-h-[calc(100svh-var(--header-height)-3rem)] min-w-0 scroll-mt-[calc(var(--header-height)+1.5rem)] overflow-y-auto lg:sticky lg:top-[calc(var(--header-height)+1.5rem)]"><TourBookingPanel tour={tour} departures={detail.departures} whatsappUrl={siteConfig.whatsappUrl} /></div>
         </div>
 
         <div className="mt-10 grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start xl:gap-10">
@@ -46,7 +46,7 @@ export function TourDetailPage({ tour, detail, similarTours }: { tour: Tour; det
 
         <TourDetailSections detail={detail} similarTours={similarTours} />
       </Container>
-      <MobileWhatsAppBar tourTitle={tour.title} whatsappNumber={siteConfig.whatsappNumber} />
+      <MobileWhatsAppBar tourTitle={tour.title} whatsappUrl={siteConfig.whatsappUrl} />
     </TourDepartureProvider>
   );
 }

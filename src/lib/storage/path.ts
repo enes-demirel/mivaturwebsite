@@ -19,3 +19,10 @@ export function isValidTourStoragePath(path: string, tourId: string, extensions:
   const match = /^([0-9a-f-]{36})\.([a-z0-9]+)$/.exec(fileName);
   return Boolean(match && uuid.safeParse(match[1]).success && extensions.includes(match[2]));
 }
+
+export function isValidBlogStoragePath(path: string, blogId: string) {
+  if (!uuid.safeParse(blogId).success || !path.startsWith(`blog-images/${blogId}/`)) return false;
+  const fileName = path.slice(`blog-images/${blogId}/`.length);
+  const match = /^([0-9a-f-]{36})\.(jpg|png|webp|avif)$/.exec(fileName);
+  return Boolean(match && uuid.safeParse(match[1]).success);
+}

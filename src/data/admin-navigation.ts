@@ -6,8 +6,8 @@ export type AdminNavigationItem = {
 export const adminNavigationItems: readonly AdminNavigationItem[] = [
   { label: "Genel Bakış", href: "/admin" },
   { label: "Turlar", href: "/admin/turlar" },
-  { label: "Blog", href: null },
+  { label: "Blog", href: "/admin/blog" },
   { label: "Talepler", href: "/admin/talepler" },
-  { label: "Destinasyonlar", href: null },
+  { label: "Destinasyonlar", href: "/admin/destinasyonlar" },
   { label: "Ayarlar", href: null },
 ];

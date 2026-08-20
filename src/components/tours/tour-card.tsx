@@ -42,6 +42,7 @@ export function TourCard({ tour }: TourCardProps) {
               src={tour.image}
               alt={tour.imageAlt}
               fill
+              unoptimized={tour.image.startsWith("/media/")}
               sizes="(min-width: 1280px) 280px, (min-width: 768px) 50vw, 100vw"
               className="object-cover transition-transform duration-500 group-hover:scale-[1.025]"
             />

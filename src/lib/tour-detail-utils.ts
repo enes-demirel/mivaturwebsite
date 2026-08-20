@@ -28,11 +28,10 @@ export function formatDepartureRange(departure: TourDeparture, short = false) {
 }
 
 export function createWhatsAppUrl(
-  number: string | null,
+  baseUrl: string,
   tourTitle: string,
   departure: TourDeparture,
 ) {
-  if (!number) return null;
   const message = `Merhaba, ${tourTitle} hakkında bilgi almak istiyorum.\nTercih edilen tarih: ${formatDepartureRange(departure)}`;
-  return `https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent(message)}`;
+  return `${baseUrl}?text=${encodeURIComponent(message)}`;
 }

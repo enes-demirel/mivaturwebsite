@@ -49,7 +49,7 @@ function DayNode({ day, onSelect, emphasized, mobile = false, desktop = false }:
     <button type="button" onClick={() => onSelect(day)} className={`group relative min-h-24 w-full rounded-lg border bg-surface p-4 text-left shadow-[0_8px_24px_rgb(37_35_41_/_0.045)] outline-none transition-[transform,border-color,box-shadow] hover:-translate-y-0.5 hover:border-brand/35 focus-visible:ring-3 focus-visible:ring-brand/25 motion-reduce:transform-none motion-reduce:transition-none ${emphasized ? "border-brand/30" : "border-border"} ${mobile ? "min-h-20" : ""}`}>
       <span aria-hidden="true" className={`absolute size-3 rounded-full border-2 border-surface bg-brand ${desktop ? "-top-1.5 left-1/2 -translate-x-1/2" : "top-1/2 -left-[1.72rem] -translate-y-1/2"}`} />
       <span className="text-xs font-extrabold tracking-[0.12em] text-brand uppercase">{day.dayNumber}. Gün</span>
-      <span className="mt-2 block text-sm leading-6 font-bold text-text group-hover:text-brand">{day.route}</span>
+      <span className="mt-2 flex items-center gap-3">{day.image && day.imageAlt && <span className="relative block h-10 w-14 shrink-0 overflow-hidden rounded-sm bg-border/30"><Image src={day.image} alt="" fill unoptimized={day.image.startsWith("/media/")} sizes="56px" className="object-cover" /></span>}<span className="block text-sm leading-6 font-bold text-text group-hover:text-brand">{day.route}</span></span>
     </button>
   );
 }
@@ -106,7 +106,7 @@ function TourDayModal({ day, onClose }: { day: TourItineraryDay | null; onClose:
         <button type="button" onClick={() => dialogRef.current?.close()} aria-label="Gün detayını kapat" className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-border text-xl hover:border-brand">×</button>
       </div>
       <div className="p-5 sm:p-7">
-        {day.image && day.imageAlt && <div className="relative mb-6 aspect-[8/5] overflow-hidden rounded-lg"><Image src={day.image} alt={day.imageAlt} fill sizes="700px" className="object-cover" /></div>}
+        {day.image && day.imageAlt && <div className="relative mb-6 aspect-[8/5] overflow-hidden rounded-lg"><Image src={day.image} alt={day.imageAlt} fill unoptimized={day.image.startsWith("/media/")} sizes="700px" className="object-cover" /></div>}
         <p className="text-lg font-bold text-text">{day.title}</p>
         <p className="mt-2 leading-7 text-muted">{day.summary}</p>
         <div className="mt-6"><h4 className="font-bold text-text">Öne çıkan duraklar</h4><ul className="mt-3 grid gap-2 sm:grid-cols-2">{day.highlights.map((highlight) => <li key={highlight} className="flex gap-2 text-sm text-muted"><span aria-hidden="true" className="text-brand">•</span>{highlight}</li>)}</ul></div>

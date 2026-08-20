@@ -5,7 +5,7 @@ import { generalFaqGroups, generalFaqs } from "@/data/general-faqs";
 
 const title = "Sıkça Sorulan Sorular | Mivatur";
 const description = "Mivatur rezervasyon, ödeme, vize, tur programı ve değişiklik süreçleri hakkında sıkça sorulan sorular.";
-export const metadata: Metadata = { title:{absolute:title}, description, alternates:{canonical:"https://mivatur.com/sikca-sorulan-sorular"} };
+export const metadata: Metadata = { title:{absolute:title}, description, alternates:{canonical:"https://www.mivatur.com/sikca-sorulan-sorular"} };
 
 export default function FrequentlyAskedQuestionsPage() {
   const jsonLd = { "@context":"https://schema.org", "@type":"FAQPage", mainEntity:generalFaqs.map((faq)=>({"@type":"Question",name:faq.question,acceptedAnswer:{"@type":"Answer",text:faq.answer}})) };

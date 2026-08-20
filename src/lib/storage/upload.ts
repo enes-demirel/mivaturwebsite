@@ -1,5 +1,5 @@
-export async function uploadAdminMedia(file:File,tourId:string,kind:"image"|"pdf") {
-  const body=new FormData(); body.set("file",file); body.set("tourId",tourId); body.set("kind",kind);
+export async function uploadAdminMedia(file:File,ownerId:string,kind:"image"|"pdf"|"blog-image") {
+  const body=new FormData(); body.set("file",file); body.set("ownerId",ownerId); body.set("kind",kind);
   const response=await fetch("/api/admin/media/upload",{method:"POST",body});
   if (!response.ok) return null;
   const value:unknown=await response.json();
