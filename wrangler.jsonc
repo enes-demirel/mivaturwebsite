@@ -7,8 +7,6 @@
   "assets": { "binding": "ASSETS", "directory": ".open-next/assets" },
   "d1_databases": [{ "binding": "MIVATUR_DB", "database_name": "mivatur-db", "database_id": "19b5b4e3-1c12-42cf-b3cc-7a7451aaa28d", "migrations_dir": "cloudflare/migrations" }],
   "r2_buckets": [
-    { "binding": "MIVATUR_MEDIA", "bucket_name": "mivatur-media" },
-    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "mivatur-cache" }
-  ],
-  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "mivatur" }]
+    { "binding": "MIVATUR_MEDIA", "bucket_name": "mivatur-media" }
+  ]
 }

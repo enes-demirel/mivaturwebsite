@@ -6,7 +6,6 @@ Next.js 16 ve OpenNext tabanlı Cloudflare Workers uygulaması.
 
 - D1: `mivatur-db`
 - R2 medya: `mivatur-media`
-- R2 incremental cache: `mivatur-cache`
 
 ## Yerel kurulum
 
